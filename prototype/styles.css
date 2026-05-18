@@ -1615,7 +1615,7 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 .analyst-target-kpis {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -1660,12 +1660,126 @@ input, textarea, select { font: inherit; color: inherit; }
   font-weight: 600;
 }
 .analyst-target-context span { color: var(--text-2); }
+.analyst-target-nextq {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 8px;
+  color: var(--text-2);
+  font-size: 12.8px;
+  line-height: 1.5;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.analyst-target-nextq b {
+  color: var(--text-3);
+  font-weight: 650;
+}
 .analyst-target-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 .analyst-target-chips em {
+  font-style: normal;
+  color: var(--text-2);
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.analyst-target-source {
+  margin-top: 14px;
+  padding: 14px;
+  background: rgba(138, 124, 255, 0.06);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+}
+.analyst-target-source summary {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  list-style: none;
+  color: var(--text);
+  font-size: 12.8px;
+  font-weight: 650;
+}
+.analyst-target-source summary::-webkit-details-marker { display: none; }
+.analyst-target-source summary::after {
+  content: "접기";
+  color: var(--text-4);
+  font-size: 11px;
+  font-weight: 500;
+}
+.analyst-target-source:not([open]) summary::after { content: "보기"; }
+.analyst-target-source summary small {
+  margin-left: auto;
+  color: var(--text-4);
+  font-size: 10.8px;
+  font-weight: 500;
+}
+.analyst-target-source-basics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.analyst-target-source-basics div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 10px;
+}
+.analyst-target-source-basics small {
+  display: block;
+  color: var(--text-4);
+  font-size: 10.5px;
+  margin-bottom: 4px;
+}
+.analyst-target-source-basics strong {
+  color: var(--text);
+  font-size: 12.8px;
+  font-weight: 650;
+}
+.analyst-target-source-row {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
+}
+.analyst-target-source-row b {
+  display: block;
+  color: var(--text-3);
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.analyst-target-source-row p {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.58;
+}
+.analyst-target-source-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.analyst-target-source-chips div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.analyst-target-source-chips span {
+  width: 82px;
+  color: var(--text-4);
+  font-size: 11px;
+}
+.analyst-target-source-chips em {
   font-style: normal;
   color: var(--text-2);
   font-size: 11.5px;
@@ -1743,6 +1857,7 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 @media (max-width: 900px) {
   .analyst-target-grid { grid-template-columns: 1fr; }
+  .analyst-target-kpis { grid-template-columns: repeat(2, 1fr); }
   .analyst-chat-row { max-width: 94%; }
 }
 

@@ -16,15 +16,23 @@ function aList(value) {
 function AnalystTargetCard({ target, index }) {
   const context = target?.persona_context && typeof target.persona_context === "object" ? target.persona_context : {};
   const metaBits = [target?.meta, context.age ? `${context.age}세` : "", context.province, context.occupation].map(aText).filter(Boolean);
-  const contextRows = [
-    ["생활 맥락", context.family_context || context.persona],
-    ["업무 맥락", context.professional_context],
-    ["목표", context.goals],
-  ].map(([label, value]) => [label, aText(value)]).filter(([, value]) => value);
   const drivers = aList(target?.positive_drivers);
   const risks = aList(target?.top_risks);
   const interests = aList(context.interests);
   const capabilities = aList(context.capabilities);
+  const usedFields = aList(target?.used_persona_fields);
+  const source = context.source && typeof context.source === "object" ? context.source : {};
+  const sourceChips = [
+    source.dataset_id ? `dataset: ${source.dataset_id}` : "",
+    source.uuid ? `uuid: ${String(source.uuid).slice(0, 12)}${String(source.uuid).length > 12 ? "…" : ""}` : "",
+    source.name_parse_confidence != null ? `name parse: ${source.name_parse_confidence}` : "",
+  ].filter(Boolean);
+  const contextRows = [
+    ["Persona summary", context.persona],
+    ["가족/생활 맥락", context.family_context],
+    ["직업/업무 맥락", context.professional_context],
+    ["목표", context.goals],
+  ].map(([label, value]) => [label, aText(value)]).filter(([, value]) => value);
 
   return (
     <div className="analyst-target-card">
@@ -37,16 +45,13 @@ function AnalystTargetCard({ target, index }) {
       </div>
       <div className="analyst-target-reason">{target?.reason || target?.signal || "분석 질문에 맞춰 선택"}</div>
       <div className="analyst-target-kpis">
+        <div><span>제품 이해도</span><strong>{target?.understanding_score ?? "-"}%</strong></div>
         <div><span>채택 의향</span><strong>{target?.adoption_likelihood ?? "-"}%</strong></div>
         <div><span>문제 적합도</span><strong>{target?.need_fit_score ?? "-"}%</strong></div>
         <div><span>가격 부담</span><strong>{target?.price_resistance || "-"}</strong></div>
       </div>
       {target?.concern && <p className="analyst-target-concern">“{target.concern}”</p>}
-      {contextRows.length > 0 && (
-        <div className="analyst-target-context">
-          {contextRows.map(([label, value]) => <div key={label}><b>{label}</b><span>{value}</span></div>)}
-        </div>
-      )}
+      {target?.next_validation_question && <div className="analyst-target-nextq"><b>다음 질문</b><span>{target.next_validation_question}</span></div>}
       {(drivers.length || risks.length || interests.length || capabilities.length) ? (
         <div className="analyst-target-chips">
           {drivers.map(v => <em key={`d-${v}`}>동기: {v}</em>)}
@@ -54,6 +59,23 @@ function AnalystTargetCard({ target, index }) {
           {interests.map(v => <em key={`i-${v}`}>관심: {v}</em>)}
           {capabilities.map(v => <em key={`c-${v}`}>역량: {v}</em>)}
         </div>
+      ) : null}
+      {(contextRows.length || usedFields.length || sourceChips.length) ? (
+        <details className="analyst-target-source" open>
+          <summary><span>시뮬레이션에 사용한 원본 페르소나</span><small>4단계와 동일한 prompt context</small></summary>
+          <div className="analyst-target-source-basics">
+            {[["나이", context.age], ["지역", context.province], ["직업", context.occupation]].map(([label, value]) => aText(value) ? <div key={label}><small>{label}</small><strong>{value}</strong></div> : null)}
+          </div>
+          {contextRows.map(([label, value]) => <div className="analyst-target-source-row" key={label}><b>{label}</b><p>{value}</p></div>)}
+          {(interests.length || capabilities.length || usedFields.length || sourceChips.length) ? (
+            <div className="analyst-target-source-chips">
+              {interests.length > 0 && <div><span>관심사</span>{interests.map(v => <em key={`si-${v}`}>{v}</em>)}</div>}
+              {capabilities.length > 0 && <div><span>역량</span>{capabilities.map(v => <em key={`sc-${v}`}>{v}</em>)}</div>}
+              {usedFields.length > 0 && <div><span>반응 근거 필드</span>{usedFields.map(v => <em key={`su-${v}`}>{v}</em>)}</div>}
+              {sourceChips.length > 0 && <div><span>출처 메타</span>{sourceChips.map(v => <em key={`ss-${v}`}>{v}</em>)}</div>}
+            </div>
+          ) : null}
+        </details>
       ) : null}
     </div>
   );

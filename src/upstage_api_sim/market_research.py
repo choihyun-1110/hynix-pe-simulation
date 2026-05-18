@@ -5233,6 +5233,7 @@ def select_analyst_target_personas(
                 "name": _first_text(reaction.get("name"), f"Persona {index + 1}"),
                 "meta": _first_text(reaction.get("meta")),
                 "stance": _first_text(reaction.get("stance"), "분석됨"),
+                "understanding_score": _as_int(reaction.get("understanding_score"), default=50),
                 "adoption_likelihood": _as_int(reaction.get("adoption_likelihood"), default=50),
                 "need_fit_score": _as_int(reaction.get("need_fit_score"), default=50),
                 "price_resistance": _first_text(reaction.get("price_resistance"), "Medium"),
@@ -5240,6 +5241,7 @@ def select_analyst_target_personas(
                 "positive_drivers": _listify(reaction.get("positive_drivers"))[:5],
                 "top_risks": _listify(reaction.get("top_risks"))[:5],
                 "next_validation_question": _first_text(reaction.get("next_validation_question")),
+                "used_persona_fields": _listify(reaction.get("used_persona_fields"))[:8],
                 "persona_context": reaction.get("persona_context") if isinstance(reaction.get("persona_context"), dict) else None,
                 "reason": reason,
             }

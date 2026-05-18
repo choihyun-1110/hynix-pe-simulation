@@ -1586,7 +1586,7 @@ class MarketResearchTests(unittest.TestCase):
         client = FakeChatClient()
         user_question = "가격보다 신뢰가 더 큰 장벽인지 물어봐줘"
         reactions = [
-            {"name": "김다희", "meta": "46세 · 경기", "stance": "조건부 긍정", "adoption_likelihood": 62, "need_fit_score": 70, "price_resistance": "Medium", "concern": "추천 근거 확인 필요", "top_risks": ["추천 근거 부족"], "persona_context": {"name": "김다희", "age": 46, "province": "경기", "occupation": "보호자", "family_context": "부모님 식단을 챙긴다."}},
+            {"name": "김다희", "meta": "46세 · 경기", "stance": "조건부 긍정", "understanding_score": 81, "adoption_likelihood": 62, "need_fit_score": 70, "price_resistance": "Medium", "concern": "추천 근거 확인 필요", "top_risks": ["추천 근거 부족"], "used_persona_fields": ["family_context", "goals"], "persona_context": {"name": "김다희", "age": 46, "province": "경기", "occupation": "보호자", "family_context": "부모님 식단을 챙긴다."}},
             {"name": "박회의", "meta": "38세 · 서울", "stance": "회의형", "adoption_likelihood": 35, "need_fit_score": 44, "price_resistance": "High", "concern": "월 구독료 부담", "top_risks": ["가격 저항"]},
         ]
 
@@ -1603,6 +1603,8 @@ class MarketResearchTests(unittest.TestCase):
         self.assertEqual(len(result["target_personas"]), 2)
         self.assertIn("concern", result["target_personas"][0])
         self.assertIn("top_risks", result["target_personas"][0])
+        self.assertIn("understanding_score", result["target_personas"][0])
+        self.assertTrue(any("family_context" in target.get("used_persona_fields", []) for target in result["target_personas"]))
         self.assertTrue(any((target.get("persona_context") or {}).get("occupation") == "보호자" for target in result["target_personas"]))
         self.assertEqual(len(result["conversations"]), 2)
         self.assertEqual(result["conversations"][0]["messages"][0]["role"], "analyst")
