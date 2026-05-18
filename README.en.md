@@ -1,9 +1,11 @@
 <div align="center">
 
+<img src="assets/mascot-kinsy.svg" alt="Kinsy, the Upkinsey mascot" width="150" />
+
 # Upkinsey
 
-**Self-hostable synthetic market research for product teams**<br>
-Turn a product brief into persona reactions, market signals, objections, validation plans, and founder-ready reports.
+**A self-hostable synthetic research lab for pre-launch product decisions**<br>
+Turn a product brief into persona reactions, market signals, objections, analyst interviews, validation plans, and founder-ready reports.
 
 [한국어](README.md) · [English](README.en.md) · [Demo page](https://upstage.jaeyeong2026.com)
 
@@ -12,9 +14,9 @@ Turn a product brief into persona reactions, market signals, objections, validat
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 [![Upstage Solar](https://img.shields.io/badge/Powered%20by-Upstage%20Solar-6B5CFF)](https://console.upstage.ai/docs/capabilities/generate/chat)
 [![Nemotron Personas Korea](https://img.shields.io/badge/Persona%20data-Nemotron--Personas--Korea-76B900)](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea)
-![Status](https://img.shields.io/badge/status-private%20beta-black)
+![Status](https://img.shields.io/badge/status-beta-black)
 
-<img src="assets/readme-hero.png" alt="Upkinsey landing page screenshot" width="880" />
+<img src="assets/upkinsey-interface-preview.png" alt="Upkinsey interface preview showing brief input, persona simulation, and research report" width="920" />
 
 </div>
 
@@ -42,14 +44,24 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
 - **Objection mining** and segment recommendations
 - **Message angle tests** for landing-page and survey copy
 - **Pricing sensitivity lab** for willingness-to-pay probes
+- **Analyst interview mode** with multi-turn probes for recent behavior, current alternatives, barriers, proof needs, and next actions
 - **Validation plan** with screener questions, interview guide, and survey draft
 - **Founder memo** and portable Markdown report export
 - **Saved run versions** with comparison against previous simulations
 - **Self-hosting safety controls** for paid API protection
 
-## Preview
+## Screenshots
 
-<img src="assets/readme-app.png" alt="Upkinsey product brief workflow screenshot" width="880" />
+<table>
+  <tr>
+    <td width="50%"><img src="assets/readme-hero.png" alt="Upkinsey landing page" /><br /><sub><b>Landing</b> — research workflow at a glance</sub></td>
+    <td width="50%"><img src="assets/readme-app.png" alt="Upkinsey product brief workflow" /><br /><sub><b>Brief runner</b> — product context, pricing, and target setup</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/upkinsey-service-overview.png" alt="Upkinsey service overview" /><br /><sub><b>Research pipeline</b> — brief → persona panel → signals → validation</sub></td>
+    <td width="50%"><img src="assets/mascot-kinsy.svg" alt="Kinsy mascot" /><br /><sub><b>Kinsy</b> — the tiny analyst mascot who keeps asking better follow-ups</sub></td>
+  </tr>
+</table>
 
 ## How it works
 
@@ -59,8 +71,9 @@ flowchart LR
   B --> C[Nemotron Personas Korea persona panel]
   C --> D[Upstage Solar persona reactions]
   D --> E[Signal aggregation]
-  E --> F[Report + validation plan]
-  F --> G[Real-user interviews / surveys]
+  E --> F[Analyst interviews]
+  F --> G[Report + validation plan]
+  G --> H[Real-user interviews / surveys]
 ```
 
 ## Quick start
@@ -239,6 +252,7 @@ Upkinsey was jointly developed as a collaborative project by:
 
 - LLM / reasoning layer: [**Upstage Solar**](https://console.upstage.ai/docs/capabilities/generate/chat)
 - Persona data support: [**nvidia/Nemotron-Personas-Korea**](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea), licensed under CC-BY-4.0
+- Mascot: Kinsy, original project artwork for Upkinsey
 
 ```text
 Upstage Solar: https://console.upstage.ai/docs/capabilities/generate/chat

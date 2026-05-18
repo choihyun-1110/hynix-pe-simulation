@@ -1,0 +1,58 @@
+<svg width="720" height="720" viewBox="0 0 720 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Kinsy, the Upkinsey mascot</title>
+  <desc id="desc">A friendly otter-like analyst mascot holding a clipboard and a glowing insight orb.</desc>
+  <defs>
+    <radialGradient id="orb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F4F0FF"/>
+      <stop offset="45%" stop-color="#9B7CFF"/>
+      <stop offset="100%" stop-color="#6B5CFF"/>
+    </radialGradient>
+    <linearGradient id="fur" x1="159" y1="112" x2="535" y2="637" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B78355"/>
+      <stop offset="1" stop-color="#6F452D"/>
+    </linearGradient>
+    <linearGradient id="coat" x1="185" y1="338" x2="548" y2="648" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4FF"/>
+      <stop offset="1" stop-color="#DDD4FF"/>
+    </linearGradient>
+    <filter id="softShadow" x="80" y="88" width="580" height="590" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#241156" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <circle cx="360" cy="360" r="318" fill="#F7F5FF"/>
+  <circle cx="360" cy="360" r="316" stroke="#E4DFFF" stroke-width="4"/>
+  <path d="M127 505C172 613 285 660 396 642C518 622 604 527 596 401" stroke="#E9E1FF" stroke-width="26" stroke-linecap="round"/>
+  <path d="M561 211C609 255 629 322 612 386" stroke="#F0EBFF" stroke-width="24" stroke-linecap="round"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M259 373C196 392 153 452 157 522C163 611 242 653 341 646C463 638 547 584 550 500C553 420 483 363 388 355C343 351 299 361 259 373Z" fill="url(#fur)"/>
+    <path d="M229 399C196 430 181 474 191 519C207 590 281 621 365 610C452 599 510 550 508 491C506 430 446 389 365 385C311 382 263 390 229 399Z" fill="url(#coat)"/>
+
+    <path d="M213 230C189 196 151 173 112 174C138 212 152 251 151 292L213 230Z" fill="#7D4F34"/>
+    <path d="M508 230C532 196 570 173 609 174C583 212 569 251 570 292L508 230Z" fill="#7D4F34"/>
+    <path d="M167 285C167 190 246 124 360 124C474 124 553 190 553 285C553 384 477 441 360 441C243 441 167 384 167 285Z" fill="url(#fur)"/>
+    <path d="M221 308C221 245 279 207 360 207C441 207 499 245 499 308C499 374 438 413 360 413C282 413 221 374 221 308Z" fill="#F7E8D3"/>
+    <path d="M312 298C312 310 302 320 290 320C278 320 268 310 268 298C268 286 278 276 290 276C302 276 312 286 312 298Z" fill="#211533"/>
+    <path d="M452 298C452 310 442 320 430 320C418 320 408 310 408 298C408 286 418 276 430 276C442 276 452 286 452 298Z" fill="#211533"/>
+    <circle cx="295" cy="292" r="4" fill="white"/>
+    <circle cx="435" cy="292" r="4" fill="white"/>
+    <path d="M336 333C346 341 374 341 384 333" stroke="#3A2538" stroke-width="8" stroke-linecap="round"/>
+    <path d="M349 319C356 325 364 325 371 319" stroke="#3A2538" stroke-width="7" stroke-linecap="round"/>
+
+    <rect x="382" y="392" width="127" height="168" rx="20" transform="rotate(8 382 392)" fill="#322257"/>
+    <rect x="397" y="411" width="92" height="110" rx="10" transform="rotate(8 397 411)" fill="#FDFBFF"/>
+    <path d="M415 445L466 452" stroke="#8F7CFF" stroke-width="8" stroke-linecap="round"/>
+    <path d="M411 474L464 481" stroke="#E1DBFF" stroke-width="8" stroke-linecap="round"/>
+    <path d="M407 503L449 509" stroke="#E1DBFF" stroke-width="8" stroke-linecap="round"/>
+
+    <path d="M237 430C210 440 195 465 201 490C207 516 234 530 260 520" stroke="#8A5737" stroke-width="36" stroke-linecap="round"/>
+    <path d="M508 434C548 430 581 457 584 493C588 538 546 570 507 549" stroke="#8A5737" stroke-width="34" stroke-linecap="round"/>
+
+    <circle cx="571" cy="424" r="54" fill="url(#orb)"/>
+    <circle cx="571" cy="424" r="70" stroke="#BDAEFF" stroke-opacity="0.38" stroke-width="12"/>
+    <path d="M549 423L565 439L596 404" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <path d="M182 642C250 672 460 677 540 633" stroke="#DAD1FF" stroke-width="18" stroke-linecap="round"/>
+</svg>
