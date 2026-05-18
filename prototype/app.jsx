@@ -245,6 +245,7 @@ function App() {
   const restoredSession = React.useMemo(loadSession, []);
   const activeRunRef = useRef(null);
   const activeAbortRef = useRef(null);
+  const analystProgressTimerRef = useRef(null);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [current, setCurrent] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -256,6 +257,8 @@ function App() {
   const [brief, setBrief] = useState(() => restoredSession.brief || { ...RESONANCE_DATA.brief });
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(null);
+  const [analystRunning, setAnalystRunning] = useState(false);
+  const [analystProgress, setAnalystProgress] = useState(null);
   const [result, setResult] = useState(() => restoredSession.result || null);
   const [analystResult, setAnalystResult] = useState(() => restoredSession.analystResult || null);
   const [parseStatus, setParseStatus] = useState(null);
@@ -289,6 +292,8 @@ function App() {
   };
   const resetSession = () => {
     cancelActiveRun();
+    if (analystProgressTimerRef.current) clearInterval(analystProgressTimerRef.current);
+    analystProgressTimerRef.current = null;
     clearSession();
     setCurrent("brief");
     setBrief({ ...RESONANCE_DATA.brief });
@@ -297,6 +302,8 @@ function App() {
     setParseStatus(null);
     setRunning(false);
     setProgress(null);
+    setAnalystRunning(false);
+    setAnalystProgress(null);
     setError("");
   };
 
@@ -420,16 +427,44 @@ function App() {
 
   async function askAnalyst(question) {
     if (!liveResult) return null;
-    const response = await fetch(apiPath("/api/analyst-question"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brief: toBackendBrief(brief, {}), question, persona_reactions: liveResult.persona_reactions || liveResult.personas || [], target_limit: 4, max_rounds: 5 })
-    });
-    if (!response.ok) throw new Error(`Analyst API ${response.status}`);
-    const data = await response.json();
-    if (data.error) throw new Error(data.message || data.error);
-    setAnalystResult(data);
-    return data;
+    if (analystProgressTimerRef.current) clearInterval(analystProgressTimerRef.current);
+    const messages = [
+      "질문 의도를 분석하고 적합한 응답자를 고르는 중",
+      "선택한 페르소나별 인터뷰 질문을 다시 쓰는 중",
+      "응답자에게 후속 질문을 던지고 대화 맥락을 모으는 중",
+      "의견 그룹과 공통 근거를 수합하는 중",
+    ];
+    let tick = 0;
+    setAnalystRunning(true);
+    setAnalystProgress({ percent: 10, message: messages[0] });
+    analystProgressTimerRef.current = setInterval(() => {
+      tick += 1;
+      setAnalystProgress(prev => {
+        const nextPercent = Math.min(92, Number(prev?.percent || 10) + (tick < 8 ? 6 : 3));
+        const msg = messages[Math.min(messages.length - 1, Math.floor(nextPercent / 28))];
+        return { percent: nextPercent, message: msg };
+      });
+    }, 900);
+    try {
+      const response = await fetch(apiPath("/api/analyst-question"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brief: toBackendBrief(brief, {}), question, persona_reactions: liveResult.persona_reactions || liveResult.personas || [], target_limit: 4, max_rounds: 5 })
+      });
+      if (!response.ok) throw new Error(`Analyst API ${response.status}`);
+      const data = await response.json();
+      if (data.error) throw new Error(data.message || data.error);
+      setAnalystProgress({ percent: 100, message: "분석가 인터뷰 결과를 정리했어요" });
+      setAnalystResult(data);
+      return data;
+    } finally {
+      if (analystProgressTimerRef.current) clearInterval(analystProgressTimerRef.current);
+      analystProgressTimerRef.current = null;
+      setTimeout(() => {
+        setAnalystRunning(false);
+        setAnalystProgress(null);
+      }, 350);
+    }
   }
 
   async function personaChat(persona, message, history) {
@@ -457,7 +492,8 @@ function App() {
         {current === "analyst"  && (liveResult ? <AnalystScreen result={liveResult} analystResult={analystResult} onAsk={askAnalyst} goBack={() => goTo("personas")} goNext={() => goTo("report")} /> : <NoResultScreen goRun={() => goTo("run")} />)}
         {current === "report"   && (liveResult ? <ReportScreen result={liveResult} data={liveData} goBack={() => goTo("analyst")} goRestart={resetSession} /> : <NoResultScreen goRun={() => goTo("run")} />)}
       </main>
-      {running && <SimulationOverlay progress={progress} onDone={() => {}} />}
+      {running && <SimulationOverlay progress={progress} title="시장에 제품을 던지고 있어요" defaultMessage="합성 응답자가 제품을 처음 듣고 있어요…" />}
+      {analystRunning && <SimulationOverlay progress={analystProgress} title="분석가가 인터뷰를 진행하고 있어요" defaultMessage="응답자를 고르고 질문을 다시 설계하는 중…" />}
       <TweaksPanel title="Tweaks">
         <TweakSection label="화면 테마"><TweakRadio label="테마" value={tweaks.theme} options={[{ value: "dark", label: "어둡게" }, { value: "light", label: "밝게" }]} onChange={(v) => setTweak("theme", v)} /></TweakSection>
         <TweakSection label="응답자 보는 방식">
@@ -470,10 +506,10 @@ function App() {
   );
 }
 
-function SimulationOverlay({ progress }) {
+function SimulationOverlay({ progress, title = "시장에 제품을 던지고 있어요", defaultMessage = "합성 응답자가 제품을 처음 듣고 있어요…" }) {
   const canvasRef = useRef(null);
   const percent = Math.max(0, Math.min(100, Number(progress?.percent ?? 12)));
-  const thought = progress?.message || "합성 응답자가 제품을 처음 듣고 있어요…";
+  const thought = progress?.message || defaultMessage;
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -495,7 +531,7 @@ function SimulationOverlay({ progress }) {
     tick();
     return () => cancelAnimationFrame(raf);
   }, []);
-  return <div className="sim-overlay"><div className="sim-stage"><canvas ref={canvasRef}></canvas><div className="sim-headline">시장에 제품을 던지고 있어요</div><div className="sim-thought">{thought}</div><div className="sim-progress"><div className="sim-progress-bar" style={{ width: percent + "%" }}></div></div></div></div>;
+  return <div className="sim-overlay"><div className="sim-stage"><canvas ref={canvasRef}></canvas><div className="sim-headline">{title}</div><div className="sim-thought">{thought}</div><div className="sim-progress"><div className="sim-progress-bar" style={{ width: percent + "%" }}></div></div></div></div>;
 }
 
 window.__RESONANCE_APP__ = App;
