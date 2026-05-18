@@ -8,6 +8,7 @@ Turn a product brief into persona reactions, market signals, objections, validat
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Upstage](https://img.shields.io/badge/Powered%20by-Upstage%20Solar-6B5CFF)
+![Nemotron Personas Korea](https://img.shields.io/badge/Persona%20data-Nemotron--Personas--Korea-76B900)
 ![Status](https://img.shields.io/badge/status-private%20beta-black)
 
 <img src="assets/readme-hero.png" alt="Upkinsey landing page screenshot" width="880" />
@@ -20,7 +21,7 @@ Turn a product brief into persona reactions, market signals, objections, validat
 
 Launching a product is expensive. Running lightweight market research before launch should not be.
 
-Upkinsey lets you paste a product concept, run it against a Korean synthetic persona panel, and get structured outputs that help answer:
+Upkinsey lets you paste a product concept, run it against a Korean synthetic persona panel built around **nvidia/Nemotron-Personas-Korea**, and get structured outputs from **Upstage Solar** that help answer:
 
 - Who is likely to care?
 - What objections appear repeatedly?
@@ -32,7 +33,7 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
 
 ## What you get
 
-- **Synthetic persona panel** powered by Upstage Solar and Korean persona data
+- **Synthetic persona panel** combining **Upstage Solar** reasoning with **nvidia/Nemotron-Personas-Korea** persona data
 - **Product brief preflight** to catch missing target, pricing, alternatives, and hypothesis details
 - **Adoption / need-fit / price-risk signals** with confidence guardrails
 - **Objection mining** and segment recommendations
@@ -53,7 +54,7 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
 flowchart LR
   A[Product brief] --> B[Brief quality check]
   B --> C[Persona panel selection]
-  C --> D[Upstage Solar reactions]
+  C --> D[Upstage Solar reactions over Nemotron-style Korean personas]
   D --> E[Signal aggregation]
   E --> F[Report + validation plan]
   F --> G[Real-user interviews / surveys]
