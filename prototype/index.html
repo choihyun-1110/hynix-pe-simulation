@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>업킨지 앤 컴퍼니 — 출시 전 시장 반응 시뮬레이션</title>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2308090d'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%238a7cff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%238a7cff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="landing-base.css?v=20260518-listinput1" />
+  <link rel="stylesheet" href="landing.css?v=20260518-listinput1" />
+</head>
+<body>
+
+  <!-- Top nav -->
+  <nav class="lp-nav">
+    <div class="lp-shell lp-nav-inner">
+      <a href="index.html" class="lp-brand">
+        <span class="lp-brand-mark">
+          <svg viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5" />
+            <circle cx="16" cy="16" r="11" stroke="currentColor" stroke-width="1.2" opacity="0.6" />
+            <circle cx="16" cy="16" r="2.2" fill="currentColor" />
+          </svg>
+        </span>
+        <span>업킨지 앤 컴퍼니</span>
+      </a>
+      <div class="lp-nav-links">
+        <a href="#problem">왜 필요한가요</a>
+        <a href="#how">어떻게 작동하나요</a>
+        <a href="#stack">기술</a>
+      </div>
+      <a class="lp-nav-cta" href="Resonance.html?from=landing">
+        시작하기
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="lp-hero">
+    <div class="lp-shell">
+      <div class="lp-hero-eyebrow">
+        <span class="dot"></span>
+        Upstage Solar Pro 3 기반 합성 마켓 리서치
+      </div>
+      <h1 class="lp-hero-h" style="font-size: 70px">제품을 시장에 내놓기 전,
+시장의 응답을 먼저 듣습니다</h1>
+      <p class="lp-hero-sub">제품 컨셉을 한 줄로 입력하면, 정밀한 한국형 페르소나 패널이 응답을 돌려줍니다. 
+한국인의 제품 채택 의향, 거부한다면 거부하는 이유, 가격 부담을 광고 태우기 전에 확인하세요.</p>
+      <div class="lp-hero-cta">
+        <a class="lp-btn lp-btn-primary" href="Resonance.html?from=landing">
+          시뮬레이션 시작하기
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="lp-btn lp-btn-ghost" href="#how">작동 방식 보기</a>
+      </div>
+
+      <!-- Live hero panel canvas -->
+      <div class="lp-hero-stage">
+        <canvas id="hero-canvas"></canvas>
+        <div class="lp-hero-thoughts">
+          <div class="thought-rail" id="thought-rail"></div>
+        </div>
+        <div class="lp-hero-corners">
+          <span class="corner tl">시뮬레이션 미리보기</span>
+          <span class="corner tr">합성 페르소나 패널</span>
+          <span class="corner bl">실시간 응답 중</span>
+          <span class="corner br">Solar Pro 3</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="lp-strip">
+    <div class="lp-shell">
+      <div class="lp-strip-grid">
+        <div class="strip-cell">
+          <div class="strip-v">5단계</div>
+          <div class="strip-l">입력에서 다음 액션 결정까지</div>
+        </div>
+        <div class="strip-cell">
+          <div class="strip-v">8–200명</div>
+          <div class="strip-l">자유롭게 조정 가능한 패널 크기</div>
+        </div>
+        <div class="strip-cell">
+          <div class="strip-v">24초</div>
+          <div class="strip-l">한 번의 시뮬레이션 평균 소요</div>
+        </div>
+        <div class="strip-cell">
+          <div class="strip-v">CC-BY-4.0</div>
+          <div class="strip-l">NVIDIA 한국 페르소나 데이터셋</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem" class="lp-section">
+    <div class="lp-shell">
+      <div class="lp-eyebrow">왜 필요한가요</div>
+      <div class="lp-section-headline">
+        <h2>막연한 아이디어로 제품을 만들고, 
+시장에 내놓고서야 안 팔린다는 걸 압니다.</h2>
+        <p class="lp-section-lead">진짜 인터뷰는 시간과 비용이 큽니다. 그래서 보통은 건너뜁니다.
+ 업킨지는 컨셉 단계에서 인터뷰의 ‘방향'만이라도 먼저 들을 수 있게 해드립니다.</p>
+      </div>
+
+      <div class="lp-compare">
+        <div class="cmp-col">
+          <div class="cmp-tag">지금 우리가 제품 컨셉을 검증하는 과정</div>
+          <ul class="cmp-list">
+            <li>아이디어를 느낌으로 검증한다</li>
+            <li>가까운 동료 몇 명에게 보여주고 좋다는 말에 만족한다</li>
+            <li>광고를 태우고 나서야 시장 반응을 본다</li>
+            <li>실패하면 그제서야 원인을 추측한다</li>
+          </ul>
+        </div>
+        <div class="cmp-arrow">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="cmp-col cmp-good">
+          <div class="cmp-tag">업킨지를 쓰면</div>
+          <ul class="cmp-list">
+            <li>제품 정보를 한 줄로 적어 응답자 반응을 빠르게 실험한다</li>
+            <li>응답자 한 명씩과 직접 대화해 세부 심리를 들여다본다</li>
+            <li>응답을 통해 아이디어를 가다듬어나가며 실험을 반복한다</li>
+            <li>필요한 부분만 정밀하게 진짜 인터뷰 및 유저테스트를 시행한다</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="lp-section lp-section-dark">
+    <div class="lp-shell">
+      <div class="lp-eyebrow">어떻게 작동하나요</div>
+      <div class="lp-section-headline">
+        <h2>제품 아이디어를 적으면,
+5단계로 결과가 풀립니다</h2>
+      </div>
+
+      <div class="lp-steps">
+        <div class="lp-step">
+          <div class="step-head">
+            <div class="step-num">01</div>
+            <div class="step-track"></div>
+          </div>
+          <h3>입력</h3>
+          <p class="step-desc">제품명, 한 줄 설명, 핵심 기능, 가격, 타깃, 현재 대안을 적습니다. 입력 품질을 자동으로 점검해 부족한 부분을 알려드려요.</p>
+          <div class="step-mini">
+            <div class="mini-field">
+              <span class="mini-l">제품</span>
+              <span class="mini-v">AI 식단 코치 앱</span>
+            </div>
+            <div class="mini-field">
+              <span class="mini-l">타깃</span>
+              <span class="mini-v">20~60대 스마트폰 사용자</span>
+            </div>
+            <div class="mini-field">
+              <span class="mini-l">가격</span>
+              <span class="mini-v">월 4,900원 · 월 9,900원</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lp-step">
+          <div class="step-head">
+            <div class="step-num">02</div>
+            <div class="step-track"></div>
+          </div>
+          <h3>실행</h3>
+          <p class="step-desc">컨셉, 가격, 메시지, 거부 이유, 세그먼트 중 무엇을 볼지 고르고 패널 규모를 정해서 시뮬레이션을 돌립니다.</p>
+          <div class="step-mini step-run">
+            <div class="run-dot run-dot-1"></div>
+            <div class="run-dot run-dot-2"></div>
+            <div class="run-dot run-dot-3"></div>
+            <div class="run-dot run-dot-4"></div>
+            <div class="run-dot run-dot-5"></div>
+            <div class="run-dot run-dot-6"></div>
+            <div class="run-dot run-dot-7"></div>
+            <div class="run-dot run-dot-8"></div>
+            <div class="run-center">실행 중</div>
+          </div>
+        </div>
+
+        <div class="lp-step">
+          <div class="step-head">
+            <div class="step-num">03</div>
+            <div class="step-track"></div>
+          </div>
+          <h3>결과</h3>
+          <p class="step-desc">채택 의향, 문제 적합도, 가격 부담을 한 화면에서 보여드리고, 이전 실행과의 차이도 비교합니다.</p>
+          <div class="step-mini">
+            <div class="mini-stat"><span class="mini-l">채택 의향</span><span class="mini-v big">33%</span></div>
+            <div class="mini-stat"><span class="mini-l">문제 적합도</span><span class="mini-v big">37%</span></div>
+            <div class="mini-bar">
+              <div class="mini-bar-seg pos" style="width: 0%"></div>
+              <div class="mini-bar-seg neu" style="width: 38%"></div>
+              <div class="mini-bar-seg neg" style="width: 62%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lp-step">
+          <div class="step-head">
+            <div class="step-num">04</div>
+            <div class="step-track"></div>
+          </div>
+          <h3>응답자</h3>
+          <p class="step-desc">응답자를 별자리, 카드, 회의실 세 가지 방식으로 보고, 한 명씩 클릭해 점수와 거부 이유를 들여다봅니다.</p>
+          <div class="step-mini step-people"></div>
+        </div>
+
+        <div class="lp-step">
+          <div class="step-head">
+            <div class="step-num">05</div>
+            <div class="step-track"></div>
+          </div>
+          <h3>리포트</h3>
+          <p class="step-desc">다듬기, 방향 전환, 접기 중 무엇을 할지 한 줄로 권장합니다. 인터뷰 가이드와 설문 초안까지 함께 옵니다.</p>
+          <div class="step-mini step-decision">
+            <div class="dec-tag">권장 액션</div>
+            <div class="dec-v">다듬기 →</div>
+            <div class="dec-meta">1주일 안에 다시 실행 ·<br />자신감 64/100</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO IT'S FOR -->
+  <section class="lp-section">
+    <div class="lp-shell">
+      <div class="lp-eyebrow">누구를 위한 도구인가요</div>
+      <h2 class="lp-h2">
+        제품을 ‘처음 시장에 내야 하는' 사람을 위해 만들었어요
+      </h2>
+
+      <div class="lp-for-grid">
+        <div class="for-cell">
+          <div class="for-num">01</div>
+          <h3>초기 스타트업 PM</h3>
+          <p>제품 컨셉을 정하고 있는데 시장 반응을 알 방법이 없을 때</p>
+        </div>
+        <div class="for-cell">
+          <div class="for-num">02</div>
+          <h3>대기업 신제품 기획자</h3>
+          <p>경영진 보고 전에 진짜 사람들이 어떻게 받을지 미리 보고 싶을 때</p>
+        </div>
+        <div class="for-cell">
+          <div class="for-num">03</div>
+          <h3>마케팅 디렉터</h3>
+          <p>광고 헤드라인 후보 중 소구되는 카피를 비교하고 싶을 때</p>
+        </div>
+        <div class="for-cell">
+          <div class="for-num">04</div>
+          <h3>UX 리서처</h3>
+          <p>실제 인터뷰 전에 어떤 질문이 가장 필요할지 미리 잡고 싶을 때</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="stack" class="lp-section lp-section-dark">
+    <div class="lp-shell">
+      <div class="lp-eyebrow">기술 신뢰</div>
+      <div class="lp-section-headline">
+        <h2>
+          Upstage Solar Pro 3와 NVIDIA 한국 페르소나 데이터셋으로<br />
+          <span class="hero-accent">진짜에 가까운 응답</span>을 만듭니다
+        </h2>
+      </div>
+
+      <div class="lp-tech-grid">
+        <div class="tech-cell">
+          <div class="tech-mark">
+            <svg viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="16" cy="16" r="11" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+              <circle cx="16" cy="16" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Upstage Solar Pro 3</h3>
+          <p>한국어 추론에 최적화된 LLM이 각 응답자의 직업, 가족, 가치관에 맞는 솔직한 반응을 생성합니다.</p>
+          <div class="tech-meta">한국어 LLM · 추론 엔진</div>
+        </div>
+        <div class="tech-cell">
+          <div class="tech-mark">
+            <svg viewBox="0 0 32 32" fill="none">
+              <rect x="6" y="6" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="20" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="20" r="1.5" fill="currentColor"/>
+              <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Nemotron Personas Korea</h3>
+          <p>NVIDIA가 공개한 한국인 페르소나 데이터셋이 이름, 지역, 나이, 직업, 가족 구성을 실제 분포로 샘플링합니다.</p>
+          <div class="tech-meta">한국 통계 분포 기반</div>
+        </div>
+        <div class="tech-cell">
+          <div class="tech-mark">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M6 16 L12 22 L26 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>검증 가드레일</h3>
+          <p>입력 품질, 패널 커버리지, 점수 분산을 자동으로 점검해 결과를 과신하지 않게 신뢰도 등급을 함께 제공합니다.</p>
+          <div class="tech-meta">근거 신뢰도 가드레일</div>
+        </div>
+      </div>
+
+      <div class="lp-disclaimer">이 결과는 합성 페르소나 기반 시뮬레이션이며, 실제 소비자 조사를 대체하지 않습니다.
+출시·투자 의사결정 전에는 실제 사용자 조사로 검증해야 합니다.</div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="lp-cta-section">
+    <div class="lp-shell">
+      <div class="lp-cta-card">
+        <div class="cta-content">
+          <h2 class="lp-cta-h">
+            지금 제품 한 줄을 적어보세요.<br />
+            <span class="hero-accent">합성 페르소나가 응답합니다.</span>
+          </h2>
+          <div class="lp-cta-btns">
+            <a class="lp-btn lp-btn-primary lp-btn-lg" href="Resonance.html?from=landing">
+              시뮬레이션 시작하기
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="lp-footer">
+    <div class="lp-shell">
+      <div class="lp-footer-grid">
+        <div>
+          <div class="lp-brand">
+            <span class="lp-brand-mark">
+              <svg viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="16" cy="16" r="11" stroke="currentColor" stroke-width="1.2" opacity="0.6" />
+                <circle cx="16" cy="16" r="2.2" fill="currentColor" />
+              </svg>
+            </span>
+            <span>업킨지 앤 컴퍼니</span>
+          </div>
+          <div class="lp-footer-line">출시 전 시장 반응 시뮬레이션</div>
+        </div>
+        <div>
+          <div class="footer-h">제품</div>
+          <a href="Resonance.html?from=landing">시작하기</a>
+          <a href="#how">어떻게 작동하나요</a>
+        </div>
+        <div>
+          <div class="footer-h">기술</div>
+          <a href="https://www.upstage.ai/" target="_blank" rel="noopener">Upstage Solar Pro 3</a>
+          <a href="https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea" target="_blank" rel="noopener">Nemotron Personas Korea</a>
+        </div>
+        <div>
+          <div class="footer-h">정보</div>
+          <div class="footer-mute">실제 소비자 조사를 대체하지 않습니다</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="data.js?v=20260518-listinput1"></script>
+  <script src="landing.js?v=20260518-listinput1"></script>
+</body>
+</html>

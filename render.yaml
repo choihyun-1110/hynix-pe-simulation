@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: upkinsey
+    env: docker
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: UPSTAGE_API_KEY
+        sync: false
+      - key: UPSTAGE_MODEL
+        value: solar-pro3
+      - key: UPSTAGE_BASE_URL
+        value: https://api.upstage.ai/v1/solar/chat/completions
+      - key: UPKINSEY_REQUIRE_BASIC_AUTH
+        value: "1"
+      - key: UPKINSEY_BASIC_AUTH_USER
+        sync: false
+      - key: UPKINSEY_BASIC_AUTH_PASSWORD
+        sync: false
+      - key: UPKINSEY_ALLOW_DESTRUCTIVE_API
+        value: "0"
+      - key: UPKINSEY_MAX_PARALLEL_REQUESTS
+        value: "2"
+      - key: UPKINSEY_MAX_ACTIVE_JOBS
+        value: "2"
+      - key: UPKINSEY_RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: UPSTAGE_MAX_RETRIES
+        value: "8"
+      - key: UPSTAGE_RETRY_BACKOFF_SECONDS
+        value: "1.5"
+      - key: UPSTAGE_MAX_RETRY_DELAY_SECONDS
+        value: "60"
+      - key: UPSTAGE_MIN_REQUEST_INTERVAL_SECONDS
+        value: "1.1"
+      - key: UPKINSEY_MAX_BODY_BYTES
+        value: "1000000"
+      - key: UPKINSEY_MAX_DOCUMENT_BYTES
+        value: "8000000"
+      - key: UPKINSEY_JOB_TTL_SECONDS
+        value: "3600"
+      - key: UPSTAGE_DOCUMENT_PARSE_URL
+        value: https://api.upstage.ai/v1/document-ai/document-parse
+      - key: UPSTAGE_DOCUMENT_PARSE_MODEL
+        value: document-parse
+      - key: UPSTAGE_DOCUMENT_PARSE_OUTPUT_FORMATS
+        value: text,html
+      - key: UPSTAGE_DOCUMENT_PARSE_FILE_FIELD
+        value: document
+      - key: UPSTAGE_DOCUMENT_PARSE_TIMEOUT
+        value: "120"
