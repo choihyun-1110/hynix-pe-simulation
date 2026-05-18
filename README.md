@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/mascot-kinsy.svg" alt="Kinsy, the Upkinsey mascot" width="150" />
+<img src="assets/logo-upkinsey.svg" alt="Upkinsey logo" width="560" />
 
 # Upkinsey
 
@@ -52,18 +52,6 @@ Upkinsey는 **제품팀이 실제 고객 인터뷰를 시작하기 전에 가설
       <img src="assets/readme-app.png" alt="Upkinsey product brief input workflow" />
       <br />
       <sub><b>Brief runner</b> — product context, pricing, and target setup</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="assets/upkinsey-service-overview.png" alt="Upkinsey service overview" />
-      <br />
-      <sub><b>Research pipeline</b> — brief → persona panel → signals → validation</sub>
-    </td>
-    <td width="50%">
-      <img src="assets/mascot-kinsy.svg" alt="Kinsy mascot" />
-      <br />
-      <sub><b>Kinsy</b> — the tiny analyst mascot who keeps asking better follow-ups</sub>
     </td>
   </tr>
 </table>
@@ -247,7 +235,7 @@ Upkinsey is currently in beta. Contributions are welcome once the public workflo
 
 - LLM / reasoning layer: [Upstage Solar](https://console.upstage.ai/docs/capabilities/generate/chat)
 - Persona data support: [nvidia/Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea), licensed under CC-BY-4.0
-- Mascot: Kinsy, original project artwork for Upkinsey
+- Logo: original project artwork for Upkinsey
 
 ## License
 

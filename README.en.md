@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/mascot-kinsy.svg" alt="Kinsy, the Upkinsey mascot" width="150" />
+<img src="assets/logo-upkinsey.svg" alt="Upkinsey logo" width="560" />
 
 # Upkinsey
 
@@ -56,10 +56,6 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
   <tr>
     <td width="50%"><img src="assets/readme-hero.png" alt="Upkinsey landing page" /><br /><sub><b>Landing</b> — research workflow at a glance</sub></td>
     <td width="50%"><img src="assets/readme-app.png" alt="Upkinsey product brief workflow" /><br /><sub><b>Brief runner</b> — product context, pricing, and target setup</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="assets/upkinsey-service-overview.png" alt="Upkinsey service overview" /><br /><sub><b>Research pipeline</b> — brief → persona panel → signals → validation</sub></td>
-    <td width="50%"><img src="assets/mascot-kinsy.svg" alt="Kinsy mascot" /><br /><sub><b>Kinsy</b> — the tiny analyst mascot who keeps asking better follow-ups</sub></td>
   </tr>
 </table>
 
@@ -252,7 +248,7 @@ Upkinsey was jointly developed as a collaborative project by:
 
 - LLM / reasoning layer: [**Upstage Solar**](https://console.upstage.ai/docs/capabilities/generate/chat)
 - Persona data support: [**nvidia/Nemotron-Personas-Korea**](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea), licensed under CC-BY-4.0
-- Mascot: Kinsy, original project artwork for Upkinsey
+- Logo: original project artwork for Upkinsey
 
 ```text
 Upstage Solar: https://console.upstage.ai/docs/capabilities/generate/chat

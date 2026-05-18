@@ -1,0 +1,33 @@
+<svg width="900" height="220" viewBox="0 0 900 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Upkinsey logo</title>
+  <desc id="desc">A sleek Upkinsey wordmark with an abstract U-shaped signal mark.</desc>
+  <defs>
+    <linearGradient id="markGradient" x1="48" y1="24" x2="188" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B7CFF"/>
+      <stop offset="0.5" stop-color="#6B5CFF"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+    <linearGradient id="wordGradient" x1="246" y1="62" x2="705" y2="152" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#312E81"/>
+    </linearGradient>
+    <filter id="shadow" x="12" y="8" width="220" height="216" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#4F46E5" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="34" y="26" width="164" height="164" rx="44" fill="#FFFFFF"/>
+    <rect x="35.5" y="27.5" width="161" height="161" rx="42.5" stroke="#E7E5FF" stroke-width="3"/>
+    <path d="M69 69V119C69 150.6 88.9 172 116 172C143.1 172 163 150.6 163 119V69" stroke="url(#markGradient)" stroke-width="23" stroke-linecap="round"/>
+    <path d="M92 70V118C92 134.2 101.1 144 116 144C130.9 144 140 134.2 140 118V70" stroke="#F1EFFF" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="69" cy="69" r="12" fill="#6B5CFF"/>
+    <circle cx="163" cy="69" r="12" fill="#14B8A6"/>
+    <circle cx="116" cy="172" r="12" fill="#8B7CFF"/>
+    <path d="M88 95C108 82 128 82 147 95" stroke="#C4B5FD" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 16"/>
+    <path d="M94 116C109 108 124 108 139 116" stroke="#99F6E4" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 13"/>
+  </g>
+
+  <text x="246" y="103" fill="url(#wordGradient)" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="68" font-weight="820" letter-spacing="-3.2">Upkinsey</text>
+  <text x="250" y="148" fill="#64748B" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="650" letter-spacing="0.45">synthetic market research lab</text>
+</svg>
