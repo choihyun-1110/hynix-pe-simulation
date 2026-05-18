@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="assets/logo-upkinsey.svg" alt="Upkinsey logo" width="560" />
-
 # Upkinsey
 
 **제품 출시 전에 시장 반응을 먼저 시뮬레이션하는 self-hostable synthetic research lab**
@@ -17,7 +15,7 @@
 [![Nemotron Personas Korea](https://img.shields.io/badge/Persona%20data-Nemotron--Personas--Korea-76B900)](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea)
 ![Status](https://img.shields.io/badge/status-beta-black)
 
-<img src="assets/upkinsey-interface-preview.png" alt="Upkinsey interface preview showing brief input, persona simulation, and research report" width="920" />
+<img src="assets/readme-main-demo.svg" alt="Upkinsey demo preview showing persona constellation, analyst interview, and insight report" width="960" />
 
 </div>
 
