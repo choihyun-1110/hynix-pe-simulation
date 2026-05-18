@@ -5,8 +5,9 @@
 **Self-hostable synthetic market research for product teams**<br>
 Turn a product brief into persona reactions, market signals, objections, validation plans, and founder-ready reports.
 
-[한국어](README.md) · [English](README.en.md)
+[한국어](README.md) · [English](README.en.md) · [Demo page](https://upstage.jaeyeong2026.com)
 
+[![Live Demo](https://img.shields.io/badge/demo-upstage.jaeyeong2026.com-7C3AED)](https://upstage.jaeyeong2026.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 [![Upstage Solar](https://img.shields.io/badge/Powered%20by-Upstage%20Solar-6B5CFF)](https://console.upstage.ai/docs/capabilities/generate/chat)
