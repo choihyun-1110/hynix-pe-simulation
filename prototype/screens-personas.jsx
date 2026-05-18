@@ -1,4 +1,4 @@
-/* 응답자(Personas) — 별자리/카드/회의실 + 1대1 인터뷰 */
+/* 응답자(Personas) — 별자리/카드 + 1대1 인터뷰 */
 /* global React, RESONANCE_DATA, PersonaPortrait */
 
 const { useState: useStateP, useEffect: useEffectP, useRef: useRefP, useMemo: useMemoP } = React;
@@ -228,67 +228,6 @@ function PersonaCards({ personas, selectedId, onSelect }) {
   );
 }
 
-/* ====== Conference mode ====== */
-
-function ConferenceRoom({ personas, selectedId, onSelect }) {
-  const ref = useRefP(null);
-  const [box, setBox] = useStateP({ w: 1000, h: 540 });
-
-  useEffectP(() => {
-    function update() {
-      if (!ref.current) return;
-      const r = ref.current.getBoundingClientRect();
-      setBox({ w: r.width, h: r.height });
-    }
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  const cx = box.w / 2, cy = box.h / 2;
-  const rx = Math.min(box.w * 0.42, 340), ry = Math.min(box.h * 0.36, 200);
-
-  return (
-    <div className="conference" ref={ref}>
-      <div className="conf-table">
-        <div className="conf-table-label">
-          오늘의 응답자<br /><span style={{ fontSize: 10 }}>{personas.length}명 출석</span>
-        </div>
-      </div>
-
-      {personas.map((p, i) => {
-        const a = (i / personas.length) * Math.PI * 2 - Math.PI / 2;
-        const x = cx + Math.cos(a) * rx;
-        const y = cy + Math.sin(a) * ry;
-        const quoteSide = Math.cos(a) >= 0 ? "right" : "left";
-        const quoteVert = Math.sin(a) >= 0 ? "below" : "above";
-        const quoteStyle = {
-          [quoteSide === "right" ? "left" : "right"]: "80px",
-          [quoteVert === "below" ? "top" : "bottom"]: "10px"
-        };
-
-        return (
-          <div key={p.id}
-               className={"conf-seat" + (selectedId === p.id ? " selected" : "")}
-               style={{ left: x + "px", top: y + "px" }}
-               onClick={() => onSelect(p.id)}>
-            <div className="node-portrait" style={{ width: 56, height: 56 }}>
-              <PersonaPortrait id={p.id} size={56} />
-            </div>
-            <div className="node-label">
-              <div className="node-name">{p.name}</div>
-              <div className="node-meta">{p.age}세</div>
-            </div>
-            <div className="conf-quote" style={quoteStyle}>
-              "{p.stanceLabel}"
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 /* ====== Persona Detail ====== */
 
 function PersonaDetail({ persona }) {
@@ -489,6 +428,7 @@ function customReply(p, q) {
 function PersonasScreen({ mode, setMode, goNext, goBack, personas: livePersonas = null, onPersonaChat = null }) {
   const personas = (livePersonas && livePersonas.length) ? livePersonas : RESONANCE_DATA.personas;
   const [selectedId, setSelectedId] = useStateP(personas[0]?.id || "p4");
+  const viewMode = mode === "cards" ? "cards" : "constellation";
 
   useEffectP(() => {
     if (!personas.find(p => p.id === selectedId)) setSelectedId(personas[0]?.id || "p4");
@@ -513,11 +453,10 @@ function PersonasScreen({ mode, setMode, goNext, goBack, personas: livePersonas 
         <div className="const-overlay-controls">
           {[
             { id: "constellation", label: "별자리" },
-            { id: "cards", label: "카드" },
-            { id: "conference", label: "회의실" }
+            { id: "cards", label: "카드" }
           ].map(m => (
             <button key={m.id}
-                    className={"seg" + (mode === m.id ? " active" : "")}
+                    className={"seg" + (viewMode === m.id ? " active" : "")}
                     onClick={() => setMode(m.id)}>
               {m.label}
             </button>
@@ -526,9 +465,8 @@ function PersonasScreen({ mode, setMode, goNext, goBack, personas: livePersonas 
       </div>
 
       <div style={{ marginBottom: 22 }}>
-        {mode === "constellation" && <Constellation personas={personas} selectedId={selectedId} onSelect={setSelectedId} />}
-        {mode === "cards" && <PersonaCards personas={personas} selectedId={selectedId} onSelect={setSelectedId} />}
-        {mode === "conference" && <ConferenceRoom personas={personas} selectedId={selectedId} onSelect={setSelectedId} />}
+        {viewMode === "constellation" && <Constellation personas={personas} selectedId={selectedId} onSelect={setSelectedId} />}
+        {viewMode === "cards" && <PersonaCards personas={personas} selectedId={selectedId} onSelect={setSelectedId} />}
       </div>
 
       <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>

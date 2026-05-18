@@ -1280,17 +1280,6 @@ input, textarea, select { font: inherit; color: inherit; }
   pointer-events: none;
 }
 
-.conf-seat:hover .node-portrait { transform: scale(1.06); }
-.conf-seat.selected .node-portrait { transform: scale(1.08); }
-.conf-seat.selected .node-portrait::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid var(--accent-bright);
-  pointer-events: none;
-}
-
 /* Adoption arc around portrait — replaces stance pill */
 .adoption-arc {
   position: absolute;
@@ -1322,8 +1311,7 @@ input, textarea, select { font: inherit; color: inherit; }
   letter-spacing: -0.005em;
 }
 
-.persona-node.selected .node-name,
-.conf-seat.selected .node-name { color: var(--accent-bright); }
+.persona-node.selected .node-name { color: var(--accent-bright); }
 
 .const-legend {
   position: absolute;
@@ -2080,70 +2068,6 @@ input, textarea, select { font: inherit; color: inherit; }
   font-weight: 600;
   letter-spacing: -0.005em;
   font-variant-numeric: tabular-nums;
-}
-
-/* Conference room mode */
-.conference {
-  position: relative;
-  height: 540px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.conf-table {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 440px;
-  height: 220px;
-  border-radius: 220px / 110px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-}
-
-.conf-table-label {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  color: var(--text-4);
-  text-align: center;
-  line-height: 1.6;
-  letter-spacing: -0.005em;
-}
-
-.conf-seat {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-}
-
-.conf-quote {
-  position: absolute;
-  max-width: 200px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--text-2);
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  letter-spacing: -0.005em;
-  word-break: keep-all;
-}
-
-.conf-seat:hover .conf-quote,
-.conf-seat.selected .conf-quote {
-  opacity: 1;
 }
 
 /* ====== Report ====== */

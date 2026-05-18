@@ -498,7 +498,7 @@ function App() {
         <TweakSection label="화면 테마"><TweakRadio label="테마" value={tweaks.theme} options={[{ value: "dark", label: "어둡게" }, { value: "light", label: "밝게" }]} onChange={(v) => setTweak("theme", v)} /></TweakSection>
         <TweakSection label="응답자 보는 방식">
           <div className="tw-mode-swatches">
-            {[{ id: "constellation", label: "별자리" }, { id: "cards", label: "카드" }, { id: "conference", label: "회의실" }].map(s => <div key={s.id} className={"tw-swatch" + (tweaks.personaMode === s.id ? " active" : "")} onClick={() => setTweak("personaMode", s.id)}><span>{s.label}</span></div>)}
+            {[{ id: "constellation", label: "별자리" }, { id: "cards", label: "카드" }].map(s => <div key={s.id} className={"tw-swatch" + ((tweaks.personaMode === s.id || (!["constellation", "cards"].includes(tweaks.personaMode) && s.id === "constellation")) ? " active" : "")} onClick={() => setTweak("personaMode", s.id)}><span>{s.label}</span></div>)}
           </div>
         </TweakSection>
       </TweaksPanel>
