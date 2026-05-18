@@ -24,7 +24,7 @@ If `UPKINSEY_REQUIRE_BASIC_AUTH=1` but the username/password are missing, the AP
 ## Required environment variables
 
 ```text
-UPSTAGE_API_KEY=<real key>
+UPSTAGE_API_KEY=<your server-side Upstage API key>
 UPSTAGE_MODEL=solar-pro3
 UPSTAGE_BASE_URL=https://api.upstage.ai/v1/solar/chat/completions
 UPKINSEY_HOST=0.0.0.0
