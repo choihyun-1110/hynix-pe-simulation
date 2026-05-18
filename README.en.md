@@ -14,7 +14,7 @@ Turn a product brief into persona reactions, market signals, objections, analyst
 [![Nemotron Personas Korea](https://img.shields.io/badge/Persona%20data-Nemotron--Personas--Korea-76B900)](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea)
 ![Status](https://img.shields.io/badge/status-beta-black)
 
-<img src="assets/readme-main-demo.svg" alt="Upkinsey demo preview showing persona constellation, analyst interview, and insight report" width="960" />
+<img src="assets/readme-constellation.png" alt="Upkinsey constellation view with six synthetic personas" width="960" />
 
 </div>
 
