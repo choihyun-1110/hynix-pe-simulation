@@ -144,6 +144,8 @@ function mapPersona(raw = {}, idx = 0) {
     drivers: asList(raw.positive_drivers || raw.drivers),
     risks: asList(raw.top_risks || raw.risks),
     nextQ: raw.next_validation_question || raw.nextQ || "어떤 근거가 있으면 다음 행동으로 넘어갈 수 있나요?",
+    sourceContext: raw.persona_context || raw.source_context || null,
+    usedPersonaFields: asList(raw.used_persona_fields),
     x: 12 + ((idx * 37) % 76),
     y: 18 + ((idx * 29) % 64),
     size: Math.max(42, Math.min(72, 42 + adoption * 0.42)),

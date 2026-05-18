@@ -167,6 +167,22 @@ def normalize_persona_for_prompt(persona: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def persona_context_for_result(persona: dict[str, Any]) -> dict[str, Any]:
+    """Return the exact compact persona context that was shown to the model.
+
+    This is intentionally not the full raw Nemotron row. It mirrors
+    `normalize_persona_for_prompt()` so the UI can explain why a respondent
+    reacted a certain way without exposing unused source fields.
+    """
+
+    normalized = normalize_persona_for_prompt(persona)
+    return {
+        key: value
+        for key, value in normalized.items()
+        if value not in (None, "", [], {})
+    }
+
+
 def _persona_age(persona: dict[str, Any]) -> int | None:
     demographics = persona.get("demographics") if isinstance(persona.get("demographics"), dict) else {}
     value = persona.get("age", demographics.get("age"))
@@ -3615,6 +3631,7 @@ def simulate_persona_reaction(
     *,
     client: UpstageClient,
 ) -> dict[str, Any]:
+    persona_context = persona_context_for_result(persona)
     text = client.complete_text(
         build_persona_prompt(brief, persona),
         system=SYSTEM_PROMPT,
@@ -3636,6 +3653,7 @@ def simulate_persona_reaction(
         "top_risks": _listify(data.get("top_risks"))[:5],
         "next_validation_question": str(data.get("next_validation_question") or "실제 사용자에게 어떤 조건에서 사용할지 확인해야 함"),
         "used_persona_fields": _listify(data.get("used_persona_fields"))[:8],
+        "persona_context": persona_context,
     }
 
 

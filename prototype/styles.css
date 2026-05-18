@@ -1482,6 +1482,108 @@ input, textarea, select { font: inherit; color: inherit; }
   letter-spacing: -0.005em;
 }
 
+.pd-source {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(138, 124, 255, 0.06);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+}
+.pd-source summary {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.pd-source summary::-webkit-details-marker { display: none; }
+.pd-source summary::after {
+  content: "접기";
+  font-size: 11px;
+  color: var(--text-4);
+  font-weight: 500;
+}
+.pd-source:not([open]) summary::after { content: "보기"; }
+.pd-source summary small {
+  margin-left: auto;
+  color: var(--text-4);
+  font-size: 11px;
+  font-weight: 500;
+}
+.pd-source-basics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+.pd-source-basic {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.pd-source-basic small {
+  display: block;
+  color: var(--text-4);
+  font-size: 10.5px;
+  margin-bottom: 4px;
+}
+.pd-source-basic strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.pd-source-row {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.pd-source-label {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.pd-source-row p {
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+}
+.pd-source-chipsets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+.pd-source-chipsets div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pd-source-chipsets span {
+  width: 82px;
+  color: var(--text-4);
+  font-size: 11px;
+}
+.pd-source-chipsets em {
+  font-style: normal;
+  color: var(--text-2);
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
 /* Chat */
 .chat {
   background: var(--surface);

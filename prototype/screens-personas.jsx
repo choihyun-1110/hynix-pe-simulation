@@ -3,6 +3,76 @@
 
 const { useState: useStateP, useEffect: useEffectP, useRef: useRefP, useMemo: useMemoP } = React;
 
+function sourceText(value) {
+  return typeof value === "string" ? value.trim() : (value == null ? "" : String(value).trim());
+}
+
+function sourceList(value) {
+  if (Array.isArray(value)) return value.map(sourceText).filter(Boolean);
+  const text = sourceText(value);
+  return text ? [text] : [];
+}
+
+function sourceValue(context, key) {
+  return sourceText(context?.[key]);
+}
+
+function PersonaSourceContext({ context, usedFields = [] }) {
+  if (!context || typeof context !== "object") return null;
+  const basics = [
+    ["나이", sourceValue(context, "age")],
+    ["지역", sourceValue(context, "province")],
+    ["직업", sourceValue(context, "occupation")],
+  ].filter(([, value]) => value);
+  const narratives = [
+    ["Persona summary", sourceValue(context, "persona")],
+    ["가족/생활 맥락", sourceValue(context, "family_context")],
+    ["직업/업무 맥락", sourceValue(context, "professional_context")],
+    ["목표", sourceValue(context, "goals")],
+  ].filter(([, value]) => value);
+  const interests = sourceList(context.interests);
+  const capabilities = sourceList(context.capabilities);
+  const source = context.source && typeof context.source === "object" ? context.source : {};
+  const sourceChips = [
+    source.dataset_id ? `dataset: ${source.dataset_id}` : "",
+    source.uuid ? `uuid: ${String(source.uuid).slice(0, 12)}${String(source.uuid).length > 12 ? "…" : ""}` : "",
+    source.name_parse_confidence != null ? `name parse: ${source.name_parse_confidence}` : "",
+  ].filter(Boolean);
+
+  return (
+    <details className="pd-source" open>
+      <summary>
+        <span>시뮬레이션에 사용한 원본 페르소나</span>
+        <small>모델 prompt에 들어간 정보만</small>
+      </summary>
+
+      {basics.length > 0 && (
+        <div className="pd-source-basics">
+          {basics.map(([label, value]) => (
+            <div className="pd-source-basic" key={label}><small>{label}</small><strong>{value}</strong></div>
+          ))}
+        </div>
+      )}
+
+      {narratives.map(([label, value]) => (
+        <div className="pd-source-row" key={label}>
+          <div className="pd-source-label">{label}</div>
+          <p>{value}</p>
+        </div>
+      ))}
+
+      {(interests.length > 0 || capabilities.length > 0 || usedFields.length > 0 || sourceChips.length > 0) && (
+        <div className="pd-source-chipsets">
+          {interests.length > 0 && <div><span>관심사</span>{interests.map(v => <em key={v}>{v}</em>)}</div>}
+          {capabilities.length > 0 && <div><span>역량</span>{capabilities.map(v => <em key={v}>{v}</em>)}</div>}
+          {usedFields.length > 0 && <div><span>반응 근거 필드</span>{usedFields.map(v => <em key={v}>{v}</em>)}</div>}
+          {sourceChips.length > 0 && <div><span>출처 메타</span>{sourceChips.map(v => <em key={v}>{v}</em>)}</div>}
+        </div>
+      )}
+    </details>
+  );
+}
+
 /* ====== Constellation viz ====== */
 
 function Constellation({ personas, selectedId, onSelect }) {
@@ -269,10 +339,12 @@ function PersonaDetail({ persona }) {
         </div>
       </div>
 
-      <div className="pd-section" style={{ marginBottom: 0 }}>
+      <div className="pd-section">
         <div className="pd-shead">이 분에게 다음에 물어볼 것</div>
         <div className="pd-nextq">{p.nextQ}</div>
       </div>
+
+      <PersonaSourceContext context={p.sourceContext} usedFields={p.usedPersonaFields || []} />
     </div>
   );
 }

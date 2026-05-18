@@ -1511,6 +1511,39 @@ class MarketResearchTests(unittest.TestCase):
         self.assertEqual(normalized["source"]["uuid"], "abc")
         self.assertEqual(normalized["source"]["name_parse_confidence"], 0.8)
 
+    def test_persona_reactions_include_prompt_persona_context(self):
+        personas = [
+            {
+                "name": "김다희",
+                "demographics": {"age": 34, "province": "서울", "occupation": "직장인"},
+                "persona": "퇴근 후 부모님 건강과 식단을 챙긴다.",
+                "life_domains": {
+                    "family": "부모님과 주말마다 식사한다.",
+                    "professional": "마케팅팀에서 일하며 모바일 서비스를 자주 쓴다.",
+                },
+                "interests": {"hobbies_list": ["요리", "러닝"]},
+                "capabilities": {"skills_list": ["엑셀", "운전"]},
+                "goals": "부모님 건강 관리를 더 쉽게 하고 싶다.",
+                "uuid": "persona-uuid-1",
+                "unused_private_field": "result에 노출되면 안 됨",
+            }
+        ]
+
+        result = simulate_market_research(
+            {"product_name": "건강 식단 앱", "sample_size": 1},
+            personas=personas,
+            client=FakeClient(delay=0),
+            max_workers=1,
+        )
+
+        context = result["persona_reactions"][0]["persona_context"]
+        self.assertEqual(context["name"], "김다희")
+        self.assertEqual(context["occupation"], "직장인")
+        self.assertIn("부모님", context["family_context"])
+        self.assertEqual(context["interests"], ["요리", "러닝"])
+        self.assertEqual(context["source"]["uuid"], "persona-uuid-1")
+        self.assertNotIn("unused_private_field", context)
+
     def test_chat_with_persona_returns_grounded_reply(self):
         client = FakeChatClient()
         result = chat_with_persona(
