@@ -5025,7 +5025,7 @@ def _analyst_information_coverage(messages: list[dict[str, str]]) -> dict[str, A
     if len(persona_replies) >= 2:
         prev, last = persona_replies[-2], persona_replies[-1]
         repeated = _normalized_similarity(prev, last) >= 0.78 or _normalized_contains(prev, last)
-    enough = (persona_turns >= 3 and score >= 5 and len(replies.strip()) >= 180) or (persona_turns >= 2 and score >= 6 and len(replies.strip()) >= 220)
+    enough = persona_turns >= 3 and score >= 5 and len(replies.strip()) >= 180
     missing = [key for key, ok in checks.items() if not ok]
     return {"checks": checks, "score": score, "enough": enough, "repeated": repeated, "missing": missing, "persona_turns": persona_turns}
 
