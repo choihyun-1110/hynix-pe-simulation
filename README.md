@@ -223,6 +223,14 @@ This repository is currently in private beta. If you are collaborating on it:
 3. Keep secrets, sampled persona data, and simulation outputs out of git.
 4. Document any new environment variables in `.env.example` and `PUBLIC_DEPLOYMENT.md`.
 
+## Project team
+
+Upkinsey was jointly developed as a collaborative project by:
+
+- [Jaeyeong CHOI](https://github.com/Jaeyeong-CHOI)
+- [@choihyun-1110](https://github.com/choihyun-1110)
+- [@Mo-zZaAa](https://github.com/Mo-zZaAa)
+
 ## Attribution
 
 Persona data support is based on **nvidia/Nemotron-Personas-Korea**, licensed under CC-BY-4.0.
