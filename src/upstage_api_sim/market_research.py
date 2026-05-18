@@ -5236,6 +5236,11 @@ def select_analyst_target_personas(
                 "adoption_likelihood": _as_int(reaction.get("adoption_likelihood"), default=50),
                 "need_fit_score": _as_int(reaction.get("need_fit_score"), default=50),
                 "price_resistance": _first_text(reaction.get("price_resistance"), "Medium"),
+                "concern": _first_text(reaction.get("concern")),
+                "positive_drivers": _listify(reaction.get("positive_drivers"))[:5],
+                "top_risks": _listify(reaction.get("top_risks"))[:5],
+                "next_validation_question": _first_text(reaction.get("next_validation_question")),
+                "persona_context": reaction.get("persona_context") if isinstance(reaction.get("persona_context"), dict) else None,
                 "reason": reason,
             }
         )

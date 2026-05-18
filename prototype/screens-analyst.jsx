@@ -3,6 +3,88 @@
 
 const { useState: useStateA } = React;
 
+function aText(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function aList(value) {
+  if (Array.isArray(value)) return value.map(aText).filter(Boolean);
+  const text = aText(value);
+  return text ? [text] : [];
+}
+
+function AnalystTargetCard({ target, index }) {
+  const context = target?.persona_context && typeof target.persona_context === "object" ? target.persona_context : {};
+  const metaBits = [target?.meta, context.age ? `${context.age}세` : "", context.province, context.occupation].map(aText).filter(Boolean);
+  const contextRows = [
+    ["생활 맥락", context.family_context || context.persona],
+    ["업무 맥락", context.professional_context],
+    ["목표", context.goals],
+  ].map(([label, value]) => [label, aText(value)]).filter(([, value]) => value);
+  const drivers = aList(target?.positive_drivers);
+  const risks = aList(target?.top_risks);
+  const interests = aList(context.interests);
+  const capabilities = aList(context.capabilities);
+
+  return (
+    <div className="analyst-target-card">
+      <div className="analyst-target-head">
+        <div>
+          <div className="pcard-name">{target?.name || `Persona ${index + 1}`}</div>
+          <div className="pcard-bio">{metaBits.slice(0, 4).join(" · ") || "선택된 응답자"}</div>
+        </div>
+        <span className="chip">{target?.stance || "분석 대상"}</span>
+      </div>
+      <div className="analyst-target-reason">{target?.reason || target?.signal || "분석 질문에 맞춰 선택"}</div>
+      <div className="analyst-target-kpis">
+        <div><span>채택 의향</span><strong>{target?.adoption_likelihood ?? "-"}%</strong></div>
+        <div><span>문제 적합도</span><strong>{target?.need_fit_score ?? "-"}%</strong></div>
+        <div><span>가격 부담</span><strong>{target?.price_resistance || "-"}</strong></div>
+      </div>
+      {target?.concern && <p className="analyst-target-concern">“{target.concern}”</p>}
+      {contextRows.length > 0 && (
+        <div className="analyst-target-context">
+          {contextRows.map(([label, value]) => <div key={label}><b>{label}</b><span>{value}</span></div>)}
+        </div>
+      )}
+      {(drivers.length || risks.length || interests.length || capabilities.length) ? (
+        <div className="analyst-target-chips">
+          {drivers.map(v => <em key={`d-${v}`}>동기: {v}</em>)}
+          {risks.map(v => <em key={`r-${v}`}>우려: {v}</em>)}
+          {interests.map(v => <em key={`i-${v}`}>관심: {v}</em>)}
+          {capabilities.map(v => <em key={`c-${v}`}>역량: {v}</em>)}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AnalystChatTranscript({ conversation, index }) {
+  const messages = Array.isArray(conversation?.messages) ? conversation.messages : [];
+  return (
+    <div className="analyst-chat-card">
+      <div className="analyst-chat-head">
+        <div>
+          <strong>{conversation?.persona_name || `Persona ${index + 1}`}</strong>
+          {conversation?.question_plan?.objective && <p>{conversation.question_plan.objective}</p>}
+        </div>
+        <span className="chip">{conversation?.round_count || 1} rounds</span>
+      </div>
+      <div className="analyst-chat-stream">
+        {messages.map((m, j) => {
+          const isAnalyst = m.role === "analyst";
+          return (
+            <div className={"analyst-chat-row " + (isAnalyst ? "analyst" : "persona")} key={j}>
+              <div className="analyst-chat-speaker">{isAnalyst ? "Analyst" : (conversation?.persona_name || "Persona")}</div>
+              <div className="analyst-chat-bubble">{m.content}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AnalystScreen({ result, analystResult, onAsk, goBack, goNext }) {
   const [question, setQuestion] = useStateA("가격보다 신뢰가 더 큰 장벽인지, 페르소나들에게 직접 물어보고 근거를 수합해줘.");
   const [loading, setLoading] = useStateA(false);
@@ -70,12 +152,16 @@ function AnalystScreen({ result, analystResult, onAsk, goBack, goNext }) {
 
             <section className="story-section in">
               <div className="story-num">2. 먼저 선택한 타깃 페르소나</div>
-              <div className="persona-cards">{targets.map((t, i) => <div className="pcard" key={i}><div className="pcard-head"><div><div className="pcard-name">{t.name || `Persona ${i+1}`}</div><div className="pcard-bio">{t.reason || t.signal || "분석 질문에 맞춰 선택"}</div></div></div><div className="pcard-quote">{t.expected_signal || t.signal || "interview target"}</div></div>)}</div>
+              <div className="analyst-target-grid">
+                {targets.map((t, i) => <AnalystTargetCard target={t} index={i} key={i} />)}
+              </div>
             </section>
 
             <section className="story-section in">
               <div className="story-num">3. 실제 대화 기록</div>
-              {conversations.map((c, i) => <div className="story-block" key={i} style={{ marginBottom: 16 }}><div className="row between"><strong>{c.persona_name || `Persona ${i+1}`}</strong><span className="chip">{c.round_count || 1} rounds</span></div>{c.question_plan?.objective && <p className="story-lead" style={{ marginTop: 10 }}>{c.question_plan.objective}</p>}<ul className="story-list">{(c.messages || []).map((m, j) => <li key={j}><strong>{m.role === 'analyst' ? 'Analyst' : 'Persona'}:</strong> {m.content}</li>)}</ul></div>)}
+              <div className="analyst-chat-list">
+                {conversations.map((c, i) => <AnalystChatTranscript conversation={c} index={i} key={i} />)}
+              </div>
             </section>
 
             <div className="row between" style={{ marginTop: 32 }}>
