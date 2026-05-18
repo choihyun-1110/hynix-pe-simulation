@@ -10,6 +10,7 @@ import json
 import re
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from difflib import SequenceMatcher
 from typing import Any, Callable
 
 from .upstage_client import UpstageClient
@@ -4936,6 +4937,8 @@ def build_persona_chat_prompt(
 - 반드시 1인칭으로 답한다.
 - persona 결과와 모순되지 않게 답한다.
 - 제품팀이 배울 수 있는 구체적 이유/조건을 포함한다.
+- 최근 대화에서 이미 말한 내용을 반복하지 말고, 새 조건/증거/상황만 추가한다.
+- 질문이 이전 답변을 요약하거나 인용하더라도 그 문장을 따라 쓰지 않는다.
 - 2~5문장 이내 한국어로 답한다.
 - JSON only.
 
@@ -5004,9 +5007,41 @@ def _analyst_information_coverage(messages: list[dict[str, str]]) -> dict[str, A
     }
     score = sum(1 for ok in checks.values() if ok)
     persona_turns = sum(1 for message in messages if message.get("role") == "persona")
+    persona_replies = [
+        str(message.get("content") or "").strip()
+        for message in messages
+        if message.get("role") == "persona" and str(message.get("content") or "").strip()
+    ]
+    repeated = False
+    if len(persona_replies) >= 2:
+        prev, last = persona_replies[-2], persona_replies[-1]
+        repeated = _normalized_similarity(prev, last) >= 0.78 or _normalized_contains(prev, last)
     enough = persona_turns >= 2 and score >= 3 and len(replies.strip()) >= 140
     missing = [key for key, ok in checks.items() if not ok]
-    return {"checks": checks, "score": score, "enough": enough, "missing": missing, "persona_turns": persona_turns}
+    return {"checks": checks, "score": score, "enough": enough, "repeated": repeated, "missing": missing, "persona_turns": persona_turns}
+
+
+def _normalized_similarity(left: str, right: str) -> float:
+    def clean(value: str) -> str:
+        return re.sub(r"[^0-9A-Za-z가-힣]+", "", value or "").lower()
+
+    a = clean(left)
+    b = clean(right)
+    if not a or not b:
+        return 0.0
+    return SequenceMatcher(None, a, b).ratio()
+
+
+def _normalized_contains(left: str, right: str) -> bool:
+    def clean(value: str) -> str:
+        return re.sub(r"\s+", " ", value or "").strip()
+
+    a = clean(left)
+    b = clean(right)
+    if min(len(a), len(b)) < 40:
+        return False
+    short, long = (a, b) if len(a) <= len(b) else (b, a)
+    return short in long
 
 
 def _short_quote(text: Any, *, limit: int = 90) -> str:
@@ -5084,15 +5119,8 @@ def build_analyst_question_plan(
             "현재 방식과 비교해 바뀌려면 어떤 조건이 필요할지도 말해 주세요."
         )
 
-    persona_context = []
-    if stance:
-        persona_context.append(f"현재 반응은 {stance}")
-    if concern:
-        persona_context.append(f"주요 우려는 '{concern}'")
-    if driver:
-        persona_context.append(f"긍정 요인은 '{driver}'")
-    if persona_context:
-        primary = f"{persona_name}님, 당신의 {', '.join(persona_context)}입니다. {primary}"
+    if persona_name:
+        primary = f"{persona_name}님, {primary}"
 
     followups = [
         "방금 말한 장벽을 하나만 고르면 무엇이고, 실제 생활/업무의 어떤 순간에서 생기나요?",
@@ -5138,9 +5166,7 @@ def build_custom_analyst_followup(
     coverage = _analyst_information_coverage(messages)
     missing = coverage.get("missing") or []
     persona_name = _first_text(persona_reaction.get("name"), last_result.get("persona_name"), "이 persona")
-    stance = _first_text(persona_reaction.get("stance"), "현재 반응")
     concern = _short_quote(_first_text(persona_reaction.get("concern"), *(_listify(persona_reaction.get("top_risks")) or [""])))
-    last_reply = _short_quote(last_result.get("reply"), limit=120)
     suggested = _short_quote(last_result.get("suggested_followup"), limit=120)
     product_name = _first_text(brief.get("product_name"), "이 제품")
     planned_followups = _listify(question_plan.get("followup_questions"))
@@ -5162,10 +5188,9 @@ def build_custom_analyst_followup(
         focus = "마지막으로 제품팀이 꼭 반영해야 할 한 가지와 버려도 되는 한 가지를 구분해 주세요."
 
     return (
-        f"{persona_name}님, 앞서 '{last_reply}'라고 답했어요. "
-        f"당신은 {stance} persona이고, 분석 목표는 {question_plan.get('objective') or '구체적인 의사결정 조건 확인'}입니다. "
-        f"{focus} 가능한 한 구체적인 상황/조건/표현으로 답해 주세요."
-    )[:1200]
+        f"{persona_name}님, {focus} "
+        "이미 말한 내용은 반복하지 말고, 새로운 조건·증거·상황만 1~3문장으로 답해 주세요."
+    )[:520]
 
 
 def _question_signal_keywords(question: str) -> dict[str, tuple[str, ...]]:
@@ -5408,6 +5433,9 @@ def analyst_question_personas(
             coverage = _analyst_information_coverage(display_messages)
             if coverage.get("enough"):
                 stop_reason = "enough_information"
+                break
+            if coverage.get("repeated"):
+                stop_reason = "repeated_answer"
                 break
             if round_index < max_rounds:
                 current_question = build_custom_analyst_followup(

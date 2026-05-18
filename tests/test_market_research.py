@@ -1615,9 +1615,11 @@ class MarketResearchTests(unittest.TestCase):
         self.assertTrue(result["conversations"][0]["generated_questions"])
         self.assertGreaterEqual(result["conversations"][0]["round_count"], 2)
         self.assertLessEqual(result["conversations"][0]["round_count"], 5)
-        self.assertIn("앞서", result["conversations"][0]["messages"][2]["content"])
+        self.assertNotIn("앞서", result["conversations"][0]["messages"][2]["content"])
         self.assertNotIn("원래 질문", result["conversations"][0]["messages"][2]["content"])
-        self.assertIn(result["conversations"][0]["stop_reason"], {"enough_information", "max_rounds"})
+        self.assertIn("반복하지 말고", result["conversations"][0]["messages"][2]["content"])
+        self.assertLessEqual(len(result["conversations"][0]["messages"][2]["content"]), 520)
+        self.assertIn(result["conversations"][0]["stop_reason"], {"enough_information", "repeated_answer", "max_rounds"})
         self.assertIn("의견", result["synthesis"]["summary"])
         self.assertTrue(result["synthesis"]["opinion_groups"])
 
