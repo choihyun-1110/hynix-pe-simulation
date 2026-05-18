@@ -1,13 +1,16 @@
 /* 입력(Brief) + 실행(Run) screens */
 /* global React, RESONANCE_DATA */
 
-const { useState: useStateBR, useMemo: useMemoBR, useRef: useRefBR } = React;
+const { useState: useStateBR, useMemo: useMemoBR, useRef: useRefBR, useEffect: useEffectBR } = React;
 
 /* ====================== BRIEF (1단계) ====================== */
 
 function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseStatus = null }) {
   const fileInputRef = useRefBR(null);
   const [uploadError, setUploadError] = useStateBR("");
+  const [featuresText, setFeaturesText] = useStateBR(() => (brief.features || []).join("\n"));
+  const [pricingText, setPricingText] = useStateBR(() => (brief.pricing || []).join("\n"));
+  const localListEditRef = useRefBR({ features: null, pricing: null });
   const update = (k, v) => setBrief(prev => ({ ...prev, [k]: v }));
   const triggerUpload = () => fileInputRef.current?.click();
   const handlePdfUpload = async (event) => {
@@ -49,9 +52,29 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
   };
 
   const updateList = (k, v) => {
+    if (k === "features") setFeaturesText(v);
+    if (k === "pricing") setPricingText(v);
     const arr = splitListInput(v, { keepNumericCommas: k === "pricing" });
+    localListEditRef.current[k] = arr.join("\n");
     setBrief(prev => ({ ...prev, [k]: arr }));
   };
+
+  const featuresKey = (brief.features || []).join("\n");
+  const pricingKey = (brief.pricing || []).join("\n");
+  useEffectBR(() => {
+    if (localListEditRef.current.features === featuresKey) {
+      localListEditRef.current.features = null;
+      return;
+    }
+    setFeaturesText(featuresKey);
+  }, [featuresKey]);
+  useEffectBR(() => {
+    if (localListEditRef.current.pricing === pricingKey) {
+      localListEditRef.current.pricing = null;
+      return;
+    }
+    setPricingText(pricingKey);
+  }, [pricingKey]);
 
   const fields = [
     { key: "productName", label: "제품 이름", filled: !!brief.productName },
@@ -138,7 +161,7 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
                   <span className="field-help">3~5개. 한 줄에 하나씩 입력해주세요. 붙여넣기는 쉼표도 인식합니다.</span>
                 </label>
                 <textarea className="textarea compact-textarea list-textarea" rows="5" placeholder={"예) 음성 대화\n건강 알림\n가족 화상"}
-                          value={(brief.features || []).join("\n")}
+                          value={featuresText}
                           onChange={e => updateList("features", e.target.value)} />
               </div>
 
@@ -148,7 +171,7 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
                   <span className="field-help">가격의 쉼표(30,000원)는 그대로 두고, 옵션은 엔터로 구분해주세요.</span>
                 </label>
                 <textarea className="textarea compact-textarea list-textarea" rows="3" placeholder={"예) 월 39,000원\n본체 290,000원"}
-                          value={(brief.pricing || []).join("\n")}
+                          value={pricingText}
                           onChange={e => updateList("pricing", e.target.value)} />
               </div>
             </div>
