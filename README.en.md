@@ -57,19 +57,6 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
   </tr>
 </table>
 
-## How it works
-
-```mermaid
-flowchart LR
-  A[Product brief] --> B[Brief quality check]
-  B --> C[Nemotron Personas Korea persona panel]
-  C --> D[Upstage Solar persona reactions]
-  D --> E[Signal aggregation]
-  E --> F[Analyst interviews]
-  F --> G[Report + validation plan]
-  G --> H[Real-user interviews / surveys]
-```
-
 ## Quick start
 
 ### 1. Clone and install

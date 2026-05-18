@@ -68,19 +68,6 @@ Upkinsey는 **제품팀이 실제 고객 인터뷰를 시작하기 전에 가설
 - **Run history** — save, reload, and compare simulation versions
 - **Self-hosting guardrails** — Basic Auth, rate limits, active job limits, and destructive API opt-in
 
-## How it works
-
-```mermaid
-flowchart LR
-  A[Product brief] --> B[Brief quality check]
-  B --> C[Korean persona panel]
-  C --> D[Upstage Solar reactions]
-  D --> E[Signal aggregation]
-  E --> F[Analyst interviews]
-  F --> G[Report + validation plan]
-  G --> H[Real customer discovery]
-```
-
 ## Quick start
 
 ### 1. Install
