@@ -1617,8 +1617,9 @@ class MarketResearchTests(unittest.TestCase):
         self.assertLessEqual(result["conversations"][0]["round_count"], 5)
         self.assertNotIn("앞서", result["conversations"][0]["messages"][2]["content"])
         self.assertNotIn("원래 질문", result["conversations"][0]["messages"][2]["content"])
-        self.assertIn("반복하지 말고", result["conversations"][0]["messages"][2]["content"])
-        self.assertLessEqual(len(result["conversations"][0]["messages"][2]["content"]), 520)
+        self.assertNotIn("반복하지 말고", result["conversations"][0]["messages"][2]["content"])
+        self.assertNotIn("새로운 조건", result["conversations"][0]["messages"][2]["content"])
+        self.assertLessEqual(len(result["conversations"][0]["messages"][2]["content"]), 360)
         self.assertIn(result["conversations"][0]["stop_reason"], {"enough_information", "repeated_answer", "max_rounds"})
         self.assertIn("의견", result["synthesis"]["summary"])
         self.assertTrue(result["synthesis"]["opinion_groups"])
@@ -1641,7 +1642,8 @@ class MarketResearchTests(unittest.TestCase):
         self.assertIn("price", plan["signals"])
         self.assertIn("trust", plan["signals"])
         self.assertNotEqual(plan["primary_question"], user_question)
-        self.assertIn("가격 부담과 신뢰 근거", plan["primary_question"])
+        self.assertIn("가격", plan["primary_question"])
+        self.assertIn("믿", plan["primary_question"])
         self.assertTrue(plan["followup_questions"])
 
 

@@ -90,14 +90,14 @@ function AnalystChatTranscript({ conversation, index }) {
           <strong>{conversation?.persona_name || `Persona ${index + 1}`}</strong>
           {conversation?.question_plan?.objective && <p>{conversation.question_plan.objective}</p>}
         </div>
-        <span className="chip">{conversation?.round_count || 1} rounds</span>
+        <span className="chip">{conversation?.round_count || 1}회 대화</span>
       </div>
       <div className="analyst-chat-stream">
         {messages.map((m, j) => {
           const isAnalyst = m.role === "analyst";
           return (
             <div className={"analyst-chat-row " + (isAnalyst ? "analyst" : "persona")} key={j}>
-              <div className="analyst-chat-speaker">{isAnalyst ? "Analyst" : (conversation?.persona_name || "Persona")}</div>
+              <div className="analyst-chat-speaker">{isAnalyst ? "인터뷰어" : (conversation?.persona_name || "응답자")}</div>
               <div className="analyst-chat-bubble">{m.content}</div>
             </div>
           );

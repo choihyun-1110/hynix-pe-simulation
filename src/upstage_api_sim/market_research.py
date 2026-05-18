@@ -4936,10 +4936,12 @@ def build_persona_chat_prompt(
 응답 규칙:
 - 반드시 1인칭으로 답한다.
 - persona 결과와 모순되지 않게 답한다.
-- 제품팀이 배울 수 있는 구체적 이유/조건을 포함한다.
+- 실제 인터뷰 참여자처럼 자연스럽게 답한다. 보고서 문체나 컨설턴트 문체를 쓰지 않는다.
+- 제품팀이 배울 수 있는 구체적 이유/조건을 포함하되, 근거 없는 수치/ROI/성과율은 만들지 않는다.
 - 최근 대화에서 이미 말한 내용을 반복하지 말고, 새 조건/증거/상황만 추가한다.
 - 질문이 이전 답변을 요약하거나 인용하더라도 그 문장을 따라 쓰지 않는다.
-- 2~5문장 이내 한국어로 답한다.
+- "판단합니다", "제시된다면", "납득 가능합니다"보다 "저라면", "그 정도면", "아직은" 같은 구어체를 쓴다.
+- 1~3문장 이내 한국어로 답한다.
 - JSON only.
 
 JSON schema:
@@ -5063,7 +5065,6 @@ def build_analyst_question_plan(
     """
 
     normalized = validate_brief(brief)
-    product_name = _first_text(normalized.get("product_name"), "이 제품")
     question_lower = research_question.lower()
     matched_signals = [
         signal
@@ -5090,51 +5091,51 @@ def build_analyst_question_plan(
 
     if "price" in matched_signals and "trust" in matched_signals:
         primary = (
-            f"{product_name}을 검토할 때 가격 부담과 신뢰 근거 중 무엇이 먼저 해결되어야 하나요? "
-            "둘 중 더 큰 장벽, 그렇게 느끼는 이유, 확인되면 다음 행동이 어떻게 바뀌는지 말해 주세요."
+            "처음 봤을 때 가격이 더 걸리나요, 아니면 믿어도 되는지에 대한 불안이 더 큰가요? "
+            "왜 그렇게 느끼는지도 편하게 말해 주세요."
         )
     elif "price" in matched_signals:
         primary = (
-            f"{product_name}의 가격/결제 조건을 봤을 때 부담스러운 지점은 무엇이고, "
-            "결제 전 어떤 가치 증거가 있으면 납득 가능한가요?"
+            "가격이나 결제 조건을 봤을 때 제일 걸리는 부분이 뭐예요? "
+            "결제 전에 뭘 확인하면 마음이 좀 놓일까요?"
         )
     elif "trust" in matched_signals:
         primary = (
-            f"{product_name}을 믿고 써보려면 어떤 근거가 먼저 보여야 하나요? "
-            "신뢰가 생기는 증거와 여전히 불안한 지점을 구분해서 말해 주세요."
+            "이걸 믿고 써보려면 먼저 뭐가 보여야 할까요? "
+            "반대로 아직 찝찝한 지점도 같이 말해 주세요."
         )
     elif "usability" in matched_signals:
         primary = (
-            f"{product_name}을 처음 쓰는 상황을 떠올리면 어디서 귀찮거나 어렵다고 느낄까요? "
-            "반대로 어떤 흐름이면 바로 시도해볼 수 있을지도 말해 주세요."
+            "처음 써본다고 생각하면 어디서 귀찮거나 어렵게 느껴질 것 같아요? "
+            "반대로 어떤 흐름이면 한번 해볼 만하다고 느낄까요?"
         )
     elif "message" in matched_signals:
         primary = (
-            f"{product_name} 설명을 들었을 때 어떤 표현은 설득력 있고 어떤 표현은 과장처럼 느껴지나요? "
-            "바꾸면 더 믿을 만한 문장도 제안해 주세요."
+            "설명을 들었을 때 어떤 부분은 믿음이 가고, 어떤 부분은 과장처럼 느껴져요? "
+            "어떻게 말하면 더 자연스러울지도 알려주세요."
         )
     else:
         primary = (
-            f"{product_name}이 실제로 쓸 만한 서비스인지 판단할 때 가장 먼저 확인하는 기준은 무엇인가요? "
-            "현재 방식과 비교해 바뀌려면 어떤 조건이 필요할지도 말해 주세요."
+            "이걸 실제로 써볼지 말지 정할 때 제일 먼저 보는 기준이 뭐예요? "
+            "지금 하던 방식에서 바꾸려면 어떤 조건이 필요할까요?"
         )
 
     if persona_name:
         primary = f"{persona_name}님, {primary}"
 
     followups = [
-        "방금 말한 장벽을 하나만 고르면 무엇이고, 실제 생활/업무의 어떤 순간에서 생기나요?",
-        "그 장벽을 낮추려면 제품 화면이나 설명에서 어떤 증거를 먼저 보여줘야 하나요?",
-        "그 증거가 충분하다면 다음 행동은 가입, 가격 확인, 데모 요청, 주변 추천 중 어디까지 갈 수 있나요?",
-        "반대로 그 증거가 없으면 계속 쓰게 될 현재 대체 행동은 무엇인가요?",
-        "제품팀이 메시지나 기능에서 가장 먼저 고쳐야 할 한 가지를 말해 주세요.",
+        "그중에서 제일 걸리는 걸 하나만 고르면 뭐예요? 실제로 어느 순간에 그런 생각이 들 것 같나요?",
+        "그 불안을 줄이려면 화면이나 설명에서 뭘 먼저 보여주면 좋을까요?",
+        "그게 확인되면 바로 써볼 것 같나요, 아니면 더 봐야 할 게 있을까요?",
+        "지금은 비슷한 문제를 어떻게 해결하고 계세요?",
+        "제품팀에 하나만 고치라고 한다면 뭘 말하고 싶으세요?",
     ]
     if "message" in matched_signals:
-        followups.insert(1, "가장 믿을 만한 한 문장과 피해야 할 한 문장을 각각 말해 주세요.")
+        followups.insert(1, "어떤 표현은 믿음이 가고, 어떤 표현은 좀 과장처럼 들리나요?")
     if "price" in matched_signals:
-        followups.insert(1, "어떤 가격/무료체험/환불 조건이면 부담이 줄어드는지 구체적으로 말해 주세요.")
+        followups.insert(1, "가격이 괜찮다고 느끼려면 어떤 결제 방식이나 체험 조건이 필요할까요?")
     if "trust" in matched_signals:
-        followups.insert(1, "후기, 샘플, 보안 설명, 전문가 검수 중 무엇이 가장 신뢰를 만들까요?")
+        followups.insert(1, "믿어도 되겠다고 느끼려면 후기, 샘플, 검증 자료 중 뭐가 제일 먼저 보여야 할까요?")
 
     return {
         "research_question": research_question.strip(),
@@ -5166,31 +5167,26 @@ def build_custom_analyst_followup(
     coverage = _analyst_information_coverage(messages)
     missing = coverage.get("missing") or []
     persona_name = _first_text(persona_reaction.get("name"), last_result.get("persona_name"), "이 persona")
-    concern = _short_quote(_first_text(persona_reaction.get("concern"), *(_listify(persona_reaction.get("top_risks")) or [""])))
     suggested = _short_quote(last_result.get("suggested_followup"), limit=120)
-    product_name = _first_text(brief.get("product_name"), "이 제품")
     planned_followups = _listify(question_plan.get("followup_questions"))
     planned = planned_followups[round_number - 2] if round_number >= 2 and len(planned_followups) >= round_number - 1 else ""
 
     if planned:
         focus = planned
     elif "reason" in missing:
-        focus = f"방금 답변의 핵심 이유를 한 가지로 좁히면 무엇인가요? {concern}와도 연결되는지 말해 주세요."
+        focus = "그렇게 느낀 가장 큰 이유가 뭐예요?"
     elif "condition" in missing:
-        focus = f"{product_name}을 실제로 써보려면 어떤 조건이 먼저 충족되어야 하나요?"
+        focus = "실제로 써보려면 어떤 조건이 먼저 맞아야 할까요?"
     elif "evidence" in missing:
-        focus = "그 조건을 믿게 만들 증거는 무엇인가요? 예: 샘플, 무료 체험, 후기, 보안 설명, 성능 근거 중 무엇이 필요한가요?"
+        focus = "그 조건을 믿으려면 어떤 자료나 화면이 먼저 보이면 좋을까요?"
     elif "action" in missing:
-        focus = "그 증거가 있으면 다음 행동은 가입, 가격 확인, 데모 요청, 주변 추천 중 무엇에 가까운가요?"
+        focus = "그게 확인되면 다음에는 뭘 해볼 것 같아요? 가격을 더 보거나, 데모를 보거나, 바로 써보거나요."
     elif suggested:
         focus = suggested
     else:
-        focus = "마지막으로 제품팀이 꼭 반영해야 할 한 가지와 버려도 되는 한 가지를 구분해 주세요."
+        focus = "마지막으로, 이 제품에서 꼭 바뀌었으면 하는 걸 하나만 말해 주세요."
 
-    return (
-        f"{persona_name}님, {focus} "
-        "이미 말한 내용은 반복하지 말고, 새로운 조건·증거·상황만 1~3문장으로 답해 주세요."
-    )[:520]
+    return f"{persona_name}님, {focus}"[:360]
 
 
 def _question_signal_keywords(question: str) -> dict[str, tuple[str, ...]]:
