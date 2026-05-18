@@ -259,6 +259,46 @@ class MarketResearchTests(unittest.TestCase):
         self.assertEqual(result["persona_reactions"][0]["name"], "김사장")
         self.assertEqual(result["panel_profile"]["persona_filter_source"], "inferred_target_market")
 
+    def test_inferred_target_filters_do_not_shrink_requested_sample(self):
+        personas = [
+            {
+                "name": "김보호자",
+                "demographics": {"age": 64, "province": "서울", "occupation": "보호자"},
+                "persona": "부모님 건강과 복약 알림을 챙긴다.",
+            },
+            {
+                "name": "박시니어",
+                "demographics": {"age": 71, "province": "부산", "occupation": "은퇴자"},
+                "persona": "고령 반려견과 함께 지낸다.",
+            },
+            *[
+                {
+                    "name": f"일반{i}",
+                    "demographics": {"age": 25 + i, "province": "경기", "occupation": "회사원"},
+                    "persona": "일반 소비자 persona",
+                }
+                for i in range(28)
+            ],
+        ]
+
+        result = simulate_market_research(
+            {
+                "product_name": "강아지 로봇",
+                "description": "노인들을 심심하지 않게 해주는 강아지 로봇",
+                "target_market": "노인과 보호자",
+                "sample_size": 30,
+            },
+            personas=personas,
+            client=FakeClient(delay=0),
+            max_workers=8,
+        )
+
+        self.assertEqual(result["request_plan"]["persona_selection"], "target_filtered")
+        self.assertEqual(result["request_budget"]["requested_sample_size"], 30)
+        self.assertEqual(result["request_budget"]["actual_persona_count"], 30)
+        self.assertEqual(result["panel_profile"]["selected_persona_count"], 30)
+        self.assertEqual(len(result["persona_reactions"]), 30)
+
 
     def test_build_interview_discussion_guide_creates_field_ready_script(self):
         brief = {

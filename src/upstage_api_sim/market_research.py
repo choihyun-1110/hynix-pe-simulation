@@ -371,23 +371,43 @@ def persona_filter_score(persona: dict[str, Any], filters: dict[str, Any]) -> in
 
 
 def select_personas_for_brief(personas: list[dict[str, Any]], brief: dict[str, Any]) -> list[dict[str, Any]]:
-    """Rank and optionally trim a panel using product-specific persona filters."""
+    """Rank a panel using product-specific persona filters without shrinking sample_size.
+
+    Target filters should prioritize the best-fit personas, not silently reduce a
+    requested 30-person run to the 3 personas that match inferred age/keyword
+    hints. Only an explicit `panel_limit` is allowed to trim the panel below the
+    requested `sample_size`.
+    """
 
     filters = brief.get("persona_filters") if isinstance(brief.get("persona_filters"), dict) else {}
     if not filters:
         return personas
 
+    requested = _as_int(brief.get("sample_size"), default=len(personas), min_value=1, max_value=500)
+    explicit_panel_limit = filters.get("panel_limit") is not None
+    target_size = int(filters.get("panel_limit") if explicit_panel_limit else requested)
+    target_size = max(1, min(target_size, len(personas)))
+
     scored: list[tuple[int, int, dict[str, Any]]] = []
+    fallback: list[tuple[int, dict[str, Any]]] = []
     for index, persona in enumerate(personas):
         score = persona_filter_score(persona, filters)
         if score >= 0:
             scored.append((score, index, persona))
+        elif not explicit_panel_limit:
+            # Age bounds are useful ranking hints for inferred target panels, but
+            # they must not cut a user-requested sample short. Keep explicit
+            # exclude_keywords as hard exclusions even when filling the panel.
+            text = _persona_search_text(persona)
+            if not any(keyword.lower() in text for keyword in filters.get("exclude_keywords", [])):
+                fallback.append((index, persona))
     if not scored:
-        return personas
+        return [persona for _, persona in fallback[:target_size]] or personas[:target_size]
 
     ranked = [persona for score, _, persona in sorted(scored, key=lambda item: (-item[0], item[1]))]
-    panel_limit = int(filters.get("panel_limit") or len(ranked))
-    return ranked[: max(1, min(panel_limit, len(ranked)))]
+    if len(ranked) < target_size and not explicit_panel_limit:
+        ranked.extend(persona for _, persona in fallback if persona not in ranked)
+    return ranked[:target_size]
 
 
 OBJECTION_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
