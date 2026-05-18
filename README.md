@@ -10,7 +10,7 @@ Turn a product brief into persona reactions, market signals, objections, validat
 ![Upstage](https://img.shields.io/badge/Powered%20by-Upstage%20Solar-6B5CFF)
 ![Status](https://img.shields.io/badge/status-private%20beta-black)
 
-<img src="assets/upkinsey-service-overview.png" alt="Upkinsey service overview" width="760" />
+<img src="assets/readme-hero.png" alt="Upkinsey landing page screenshot" width="880" />
 
 </div>
 
@@ -45,7 +45,7 @@ Upkinsey lets you paste a product concept, run it against a Korean synthetic per
 
 ## Preview
 
-<img src="assets/upkinsey-interface-preview.png" alt="Upkinsey interface preview" width="880" />
+<img src="assets/readme-app.png" alt="Upkinsey product brief workflow screenshot" width="880" />
 
 ## How it works
 
