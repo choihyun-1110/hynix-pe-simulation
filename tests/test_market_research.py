@@ -9,6 +9,7 @@ from upstage_api_sim.market_research import (
     aggregate_market_research,
     build_assumption_stress_test,
     build_analyst_question_plan,
+    build_custom_analyst_followup,
     build_competitive_benchmark,
     build_decision_board,
     build_decision_sensitivity,
@@ -1612,6 +1613,7 @@ class MarketResearchTests(unittest.TestCase):
         self.assertNotEqual(result["conversations"][0]["messages"][0]["content"], user_question)
         self.assertIn("question_plan", result["conversations"][0])
         self.assertIn("primary_question", result["conversations"][0]["question_plan"])
+        self.assertIn("probe_sequence", result["conversations"][0]["question_plan"])
         self.assertTrue(result["conversations"][0]["generated_questions"])
         self.assertGreaterEqual(result["conversations"][0]["round_count"], 2)
         self.assertLessEqual(result["conversations"][0]["round_count"], 5)
@@ -1645,6 +1647,48 @@ class MarketResearchTests(unittest.TestCase):
         self.assertIn("가격", plan["primary_question"])
         self.assertIn("믿", plan["primary_question"])
         self.assertTrue(plan["followup_questions"])
+        phases = [probe["phase"] for probe in plan["probe_sequence"]]
+        self.assertIn("past_behavior", phases)
+        self.assertIn("current_alternative", phases)
+        self.assertIn("proof", phases)
+        self.assertIn("price_condition", phases)
+
+    def test_build_custom_analyst_followup_uses_interview_ladder(self):
+        plan = build_analyst_question_plan(
+            {"product_name": "AI 식단 코치 앱", "pricing": ["월 4,900원"]},
+            {"name": "김다희", "stance": "조건부 긍정", "concern": "추천 근거 부족"},
+            "가격과 신뢰를 더 물어봐줘",
+        )
+        first_followup = build_custom_analyst_followup(
+            {"product_name": "AI 식단 코치 앱"},
+            {"name": "김다희", "concern": "추천 근거 부족"},
+            plan,
+            [
+                {"role": "analyst", "content": plan["primary_question"]},
+                {"role": "persona", "content": "가격도 조금 부담이고, 추천을 믿어도 되는지 아직 잘 모르겠어요."},
+            ],
+            {"persona_name": "김다희", "reply": "가격도 조금 부담이고, 추천을 믿어도 되는지 아직 잘 모르겠어요."},
+            round_number=2,
+        )
+        self.assertIn("최근", first_followup)
+        self.assertNotIn("반복하지", first_followup)
+        self.assertNotIn("분석 목표", first_followup)
+
+        second_followup = build_custom_analyst_followup(
+            {"product_name": "AI 식단 코치 앱"},
+            {"name": "김다희", "concern": "추천 근거 부족"},
+            plan,
+            [
+                {"role": "analyst", "content": plan["primary_question"]},
+                {"role": "persona", "content": "가격도 조금 부담이고, 추천을 믿어도 되는지 아직 잘 모르겠어요."},
+                {"role": "analyst", "content": first_followup},
+                {"role": "persona", "content": "최근 부모님 식단을 정할 때마다 검색을 오래 했고, 그때 정확한 추천인지 불안했어요."},
+            ],
+            {"persona_name": "김다희", "reply": "최근 부모님 식단을 정할 때마다 검색을 오래 했고, 그때 정확한 추천인지 불안했어요."},
+            round_number=3,
+        )
+        self.assertIn("지금", second_followup)
+        self.assertNotEqual(first_followup, second_followup)
 
 
 class UpstagePayloadValidationTests(unittest.TestCase):

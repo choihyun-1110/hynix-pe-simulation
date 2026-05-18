@@ -4941,6 +4941,8 @@ def build_persona_chat_prompt(
 - 최근 대화에서 이미 말한 내용을 반복하지 말고, 새 조건/증거/상황만 추가한다.
 - 질문이 이전 답변을 요약하거나 인용하더라도 그 문장을 따라 쓰지 않는다.
 - "판단합니다", "제시된다면", "납득 가능합니다"보다 "저라면", "그 정도면", "아직은" 같은 구어체를 쓴다.
+- 질문 하나에만 답한다. 인터뷰어가 묻지 않은 항목까지 보고서처럼 정리하지 않는다.
+- 가능하면 최근 경험/현재 방식/망설이는 순간/확인하고 싶은 증거 중 하나를 구체적으로 말한다.
 - 1~3문장 이내 한국어로 답한다.
 - JSON only.
 
@@ -4949,6 +4951,7 @@ JSON schema:
   "persona_name": "...",
   "reply": "...",
   "signal": "price | trust | usability | need | message | other",
+  "new_information": ["이번 답변에서 새로 나온 사실/조건"],
   "suggested_followup": "..."
 }}
 """.strip()
@@ -4982,6 +4985,7 @@ def chat_with_persona(
         "persona_name": str(data.get("persona_name") or persona_reaction.get("name") or "Persona"),
         "reply": str(data.get("reply") or "조금 더 구체적으로 물어봐 주세요."),
         "signal": str(data.get("signal") or "other"),
+        "new_information": _listify(data.get("new_information"))[:5],
         "suggested_followup": str(data.get("suggested_followup") or "어떤 조건이면 사용 의향이 생기나요?"),
     }
 
@@ -5002,10 +5006,13 @@ def _analyst_information_coverage(messages: list[dict[str, str]]) -> dict[str, A
     )
     lowered = replies.lower()
     checks = {
-        "reason": _contains_any(lowered, ("왜", "이유", "때문", "부담", "우려", "불안", "필요", "문제")),
-        "condition": _contains_any(lowered, ("조건", "하면", "된다면", "있다면", "먼저", "경우", "전제", "필요")),
-        "evidence": _contains_any(lowered, ("근거", "샘플", "체험", "무료", "데모", "후기", "검증", "보여", "공개", "확인")),
-        "action": _contains_any(lowered, ("사용", "결제", "가입", "신청", "전환", "써볼", "구매", "시도")),
+        "situation": _contains_any(lowered, ("최근", "지난", "때", "순간", "상황", "업무", "생활", "프로젝트", "수업", "강의", "현장")),
+        "current_alternative": _contains_any(lowered, ("지금", "현재", "기존", "대신", "직접", "수작업", "엑셀", "검색", "주변", "혼자", "따로")),
+        "reason": _contains_any(lowered, ("왜", "이유", "때문", "부담", "우려", "불안", "필요", "문제", "걸려", "망설")),
+        "condition": _contains_any(lowered, ("조건", "하면", "된다면", "있다면", "먼저", "경우", "전제", "필요", "정도면")),
+        "evidence": _contains_any(lowered, ("근거", "샘플", "체험", "무료", "데모", "후기", "검증", "보여", "공개", "확인", "예시", "시연")),
+        "price_condition": _contains_any(lowered, ("가격", "비용", "결제", "무료", "환불", "구독", "요금", "만원", "원")),
+        "action": _contains_any(lowered, ("사용", "결제", "가입", "신청", "전환", "써볼", "구매", "시도", "볼 것", "해볼")),
     }
     score = sum(1 for ok in checks.values() if ok)
     persona_turns = sum(1 for message in messages if message.get("role") == "persona")
@@ -5018,7 +5025,7 @@ def _analyst_information_coverage(messages: list[dict[str, str]]) -> dict[str, A
     if len(persona_replies) >= 2:
         prev, last = persona_replies[-2], persona_replies[-1]
         repeated = _normalized_similarity(prev, last) >= 0.78 or _normalized_contains(prev, last)
-    enough = persona_turns >= 2 and score >= 3 and len(replies.strip()) >= 140
+    enough = (persona_turns >= 3 and score >= 5 and len(replies.strip()) >= 180) or (persona_turns >= 2 and score >= 6 and len(replies.strip()) >= 220)
     missing = [key for key, ok in checks.items() if not ok]
     return {"checks": checks, "score": score, "enough": enough, "repeated": repeated, "missing": missing, "persona_turns": persona_turns}
 
@@ -5049,6 +5056,94 @@ def _normalized_contains(left: str, right: str) -> bool:
 def _short_quote(text: Any, *, limit: int = 90) -> str:
     value = re.sub(r"\s+", " ", str(text or "")).strip()
     return value[: limit - 1].rstrip() + "…" if len(value) > limit else value
+
+
+def _probe(phase: str, question: str, goal: str) -> dict[str, str]:
+    return {"phase": phase, "question": question, "goal": goal}
+
+
+def _clean_interview_followup(text: Any) -> str:
+    """Return a display-safe interviewer question, or empty if it sounds like an internal prompt."""
+
+    question = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not question:
+        return ""
+    forbidden = (
+        "반복하지",
+        "새로운 조건",
+        "1~3문장",
+        "분석 목표",
+        "persona",
+        "페르소나",
+        "정확한 조건",
+        "ROI",
+        "성과율",
+        "보고서",
+        "JSON",
+    )
+    if any(term.lower() in question.lower() for term in forbidden):
+        return ""
+    if len(question) > 180:
+        return ""
+    if not question.endswith("?"):
+        question += "?"
+    return question
+
+
+def _asked_phases(messages: list[dict[str, str]], question_plan: dict[str, Any]) -> set[str]:
+    asked_questions = [
+        str(message.get("content") or "")
+        for message in messages
+        if message.get("role") == "analyst"
+    ]
+    phases: set[str] = set()
+    for probe in question_plan.get("probe_sequence") or []:
+        if not isinstance(probe, dict):
+            continue
+        question = str(probe.get("question") or "")
+        if any(_normalized_similarity(question, asked) >= 0.72 for asked in asked_questions):
+            phases.add(str(probe.get("phase") or ""))
+    return {phase for phase in phases if phase}
+
+
+def _select_probe_question(
+    question_plan: dict[str, Any],
+    messages: list[dict[str, str]],
+    missing: list[str],
+    *,
+    round_number: int,
+) -> str:
+    phase_by_missing = {
+        "situation": "past_behavior",
+        "current_alternative": "current_alternative",
+        "reason": "barrier",
+        "condition": "switching_condition",
+        "evidence": "proof",
+        "price_condition": "price_condition",
+        "action": "next_action",
+    }
+    probes = [probe for probe in (question_plan.get("probe_sequence") or []) if isinstance(probe, dict)]
+    asked = _asked_phases(messages, question_plan)
+    preferred_phases = [phase_by_missing[key] for key in missing if key in phase_by_missing]
+    preferred_phases += ["past_behavior", "current_alternative", "barrier", "proof", "price_condition", "next_action", "wrap"]
+    for phase in preferred_phases:
+        if phase in asked:
+            continue
+        for probe in probes:
+            if probe.get("phase") == phase:
+                question = _clean_interview_followup(probe.get("question"))
+                if question:
+                    return question
+
+    # Deterministic fallback for longer interviews: pick the next unasked natural probe.
+    for probe in probes[round_number - 1 :] + probes:
+        phase = str(probe.get("phase") or "")
+        if phase in asked:
+            continue
+        question = _clean_interview_followup(probe.get("question"))
+        if question:
+            return question
+    return "마지막으로, 이 제품에서 꼭 바뀌었으면 하는 걸 하나만 말해 주세요?"
 
 
 def build_analyst_question_plan(
@@ -5123,26 +5218,40 @@ def build_analyst_question_plan(
     if persona_name:
         primary = f"{persona_name}님, {primary}"
 
-    followups = [
-        "그중에서 제일 걸리는 걸 하나만 고르면 뭐예요? 실제로 어느 순간에 그런 생각이 들 것 같나요?",
-        "그 불안을 줄이려면 화면이나 설명에서 뭘 먼저 보여주면 좋을까요?",
-        "그게 확인되면 바로 써볼 것 같나요, 아니면 더 봐야 할 게 있을까요?",
-        "지금은 비슷한 문제를 어떻게 해결하고 계세요?",
-        "제품팀에 하나만 고치라고 한다면 뭘 말하고 싶으세요?",
+    probes = [
+        _probe("opening", primary, "첫 반응과 가장 큰 장벽 확인"),
+        _probe("past_behavior", "비슷한 일이 최근에 있었나요? 그때는 어떻게 해결했어요?", "과거 행동과 실제 맥락 확인"),
+        _probe("current_alternative", "지금은 이 문제를 보통 어떻게 해결하고 계세요?", "현재 대체 행동 확인"),
+        _probe("barrier", "그중에서 제일 걸리는 걸 하나만 고르면 뭐예요?", "핵심 장벽 좁히기"),
+        _probe("proof", "그 불안을 줄이려면 화면이나 설명에서 뭘 먼저 보여주면 좋을까요?", "필요한 신뢰 증거 확인"),
+        _probe("switching_condition", "그 정도가 확인되면 지금 하던 방식에서 바꿔볼 마음이 생길까요?", "전환 조건 확인"),
+        _probe("next_action", "그게 확인되면 다음에는 뭘 해볼 것 같아요? 가격을 더 보거나, 데모를 보거나, 바로 써보거나요.", "다음 행동 확인"),
+        _probe("wrap", "마지막으로, 이 제품에서 꼭 바뀌었으면 하는 걸 하나만 말해 주세요.", "제품 개선 우선순위 확인"),
     ]
     if "message" in matched_signals:
-        followups.insert(1, "어떤 표현은 믿음이 가고, 어떤 표현은 좀 과장처럼 들리나요?")
+        probes.insert(4, _probe("message_reaction", "어떤 표현은 믿음이 가고, 어떤 표현은 좀 과장처럼 들리나요?", "메시지 반응 확인"))
     if "price" in matched_signals:
-        followups.insert(1, "가격이 괜찮다고 느끼려면 어떤 결제 방식이나 체험 조건이 필요할까요?")
+        probes.insert(5, _probe("price_condition", "가격이 괜찮다고 느끼려면 어떤 결제 방식이나 체험 조건이 필요할까요?", "지불 장벽 완화 조건 확인"))
     if "trust" in matched_signals:
-        followups.insert(1, "믿어도 되겠다고 느끼려면 후기, 샘플, 검증 자료 중 뭐가 제일 먼저 보여야 할까요?")
+        probes.insert(5, _probe("proof", "믿어도 되겠다고 느끼려면 후기, 샘플, 검증 자료 중 뭐가 제일 먼저 보여야 할까요?", "신뢰 형성 증거 확인"))
+
+    probe_sequence: list[dict[str, str]] = []
+    seen_phases: set[str] = set()
+    for probe in probes:
+        phase = probe["phase"]
+        if phase == "proof" and phase in seen_phases:
+            continue
+        if phase not in seen_phases:
+            probe_sequence.append(probe)
+            seen_phases.add(phase)
 
     return {
         "research_question": research_question.strip(),
         "objective": objective,
         "signals": matched_signals,
         "primary_question": primary[:1200],
-        "followup_questions": unique_top(followups, limit=5),
+        "probe_sequence": probe_sequence[:8],
+        "followup_questions": [probe["question"] for probe in probe_sequence[1:6]],
         "persona_context": {
             "name": persona_name,
             "stance": stance,
@@ -5168,23 +5277,12 @@ def build_custom_analyst_followup(
     missing = coverage.get("missing") or []
     persona_name = _first_text(persona_reaction.get("name"), last_result.get("persona_name"), "이 persona")
     suggested = _short_quote(last_result.get("suggested_followup"), limit=120)
-    planned_followups = _listify(question_plan.get("followup_questions"))
-    planned = planned_followups[round_number - 2] if round_number >= 2 and len(planned_followups) >= round_number - 1 else ""
-
-    if planned:
-        focus = planned
-    elif "reason" in missing:
-        focus = "그렇게 느낀 가장 큰 이유가 뭐예요?"
-    elif "condition" in missing:
-        focus = "실제로 써보려면 어떤 조건이 먼저 맞아야 할까요?"
-    elif "evidence" in missing:
-        focus = "그 조건을 믿으려면 어떤 자료나 화면이 먼저 보이면 좋을까요?"
-    elif "action" in missing:
-        focus = "그게 확인되면 다음에는 뭘 해볼 것 같아요? 가격을 더 보거나, 데모를 보거나, 바로 써보거나요."
-    elif suggested:
-        focus = suggested
-    else:
-        focus = "마지막으로, 이 제품에서 꼭 바뀌었으면 하는 걸 하나만 말해 주세요."
+    focus = _select_probe_question(question_plan, messages, list(missing), round_number=round_number)
+    suggested_clean = _clean_interview_followup(suggested)
+    if suggested_clean and not any(_normalized_similarity(suggested_clean, str(message.get("content") or "")) >= 0.72 for message in messages if message.get("role") == "analyst"):
+        # Let the persona's own suggested angle win only when it is short and interview-like.
+        if round_number >= 4:
+            focus = suggested_clean
 
     return f"{persona_name}님, {focus}"[:360]
 
@@ -5414,7 +5512,7 @@ def analyst_question_personas(
             display_messages.extend(
                 [
                     {"role": "analyst", "content": current_question, "round": round_index},
-                    {"role": "persona", "content": reply, "round": round_index},
+                    {"role": "persona", "content": reply, "round": round_index, "new_information": result.get("new_information") or []},
                 ]
             )
             chat_history.extend(
@@ -5445,6 +5543,10 @@ def analyst_question_personas(
 
         signal = _first_counter_item(signals, "other")
         persona_replies = [message["content"] for message in display_messages if message.get("role") == "persona"]
+        new_information = unique_top(
+            [info for message in display_messages for info in _listify(message.get("new_information"))],
+            limit=8,
+        )
         combined_reply = " / ".join(_short_quote(reply, limit=150) for reply in persona_replies[:3])
         return {
             "persona_index": target["index"],
@@ -5458,6 +5560,7 @@ def analyst_question_personas(
             "generated_questions": generated_questions,
             "reply": combined_reply or result.get("reply") or "",
             "final_reply": result.get("reply") or "",
+            "new_information": new_information,
             "suggested_followup": _first_text(*followups[-2:]),
             "round_count": coverage.get("persona_turns") or max(1, len(persona_replies)),
             "max_rounds": max_rounds,
