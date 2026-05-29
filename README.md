@@ -1,87 +1,122 @@
 <div align="center">
 
-# Upkinsey
+# Hynix PE Simulation
 
-**제품 출시 전에 시장 반응을 먼저 시뮬레이션하는 self-hostable synthetic research lab**
+**Semiconductor PE(Product Engineering) 직무 관점의 AI stakeholder simulation**
 
-제품 brief 하나로 한국형 persona panel을 만들고, 반응·반대 이유·가격 저항·검증 질문·founder memo까지 한 번에 뽑아냅니다.
+반도체 제품 이슈, fail pattern, test condition, customer/application 조건을 입력하면  
+Device, Design, Process, Test/Quality, Customer/Application 관점에서 원인 후보와 추가 검증 항목을 구조화합니다.
 
-[한국어](README.md) · [English](README.en.md) · [Live demo](https://upstage.jaeyeong2026.com)
-
-[![Live Demo](https://img.shields.io/badge/demo-upstage.jaeyeong2026.com-7C3AED)](https://upstage.jaeyeong2026.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 [![Upstage Solar](https://img.shields.io/badge/Powered%20by-Upstage%20Solar-6B5CFF)](https://console.upstage.ai/docs/capabilities/generate/chat)
-[![Nemotron Personas Korea](https://img.shields.io/badge/Persona%20data-Nemotron--Personas--Korea-76B900)](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea)
-![Status](https://img.shields.io/badge/status-beta-black)
-
-<img src="assets/readme-constellation.png" alt="Upkinsey constellation view with six synthetic personas" width="960" />
+![Status](https://img.shields.io/badge/status-prototype-black)
 
 </div>
 
 ---
 
-## What is Upkinsey?
+## 프로젝트 개요
 
-Upkinsey는 **제품팀이 실제 고객 인터뷰를 시작하기 전에 가설을 빠르게 좁히는 도구**입니다.
+이 프로젝트는 기존 AI persona simulation 구조를 **SK hynix PE 직무 관점의 cross-functional stakeholder simulation**으로 재해석한 개인 프로젝트입니다.
 
-제품 설명, 가격, 타깃, 현재 대체 행동을 입력하면 [nvidia/Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea) 기반 persona panel을 구성하고, [Upstage Solar](https://console.upstage.ai/docs/capabilities/generate/chat)가 persona별 반응을 구조화합니다. 결과는 단순 점수가 아니라, 제품팀이 바로 써먹을 수 있는 objection, segment, pricing signal, validation plan, analyst interview transcript로 정리됩니다.
+PE는 단순히 test만 수행하는 직무가 아니라, 제품을 중심으로 소자(Device), 설계(Design), 공정(Process), Test/Quality, 고객(Application/Customer) 관점을 연결하면서 제품의 weak point를 검증하고 불량 원인을 좁히는 역할이라고 이해했습니다.
 
-> Upkinsey is a **pre-research** tool. Synthetic persona signals are directional: they help prioritize hypotheses, but they do not replace real customer discovery or statistically valid surveys.
+그래서 이 서비스는 AI가 불량 원인을 확정하는 도구가 아니라, PE 엔지니어가 문제를 처음 구조화할 때 다음을 빠르게 점검하도록 돕는 **reasoning assistant**를 목표로 합니다.
 
-## Why teams use it
+- 가능한 원인 후보를 stakeholder별로 분해
+- 추가로 확인해야 할 데이터 정리
+- 우선 검증 action item 제안
+- 관련 부서와 커뮤니케이션할 질문 정리
+- 고객 application 조건을 내부 test condition과 연결
 
-- 제품 아이디어가 너무 많을 때, **먼저 검증할 segment**를 고릅니다.
-- “좋아 보인다”가 아니라 **왜 망설이는지**를 persona별로 분해합니다.
-- 가격 문제인지, 신뢰 문제인지, 메시지 문제인지 **objection의 종류**를 나눕니다.
-- 실제 인터뷰 전에 **좋은 follow-up 질문**을 자동으로 만듭니다.
-- 매번 같은 실험을 반복하지 않도록 **simulation run을 저장하고 비교**합니다.
+## 한 줄 정의
 
-## Screenshots
+**Semiconductor PE mode is a cross-functional stakeholder simulation tool that helps PE engineers structure product issues from device, design, process, test, and customer application perspectives before deeper validation and inter-team communication.**
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="assets/readme-hero.png" alt="Upkinsey landing page" />
-      <br />
-      <sub><b>Landing</b> — research workflow at a glance</sub>
-    </td>
-    <td width="50%">
-      <img src="assets/readme-app.png" alt="Upkinsey product brief input workflow" />
-      <br />
-      <sub><b>Brief runner</b> — product context, pricing, and target setup</sub>
-    </td>
-  </tr>
-</table>
+## Simulation Stakeholders
 
-## Core features
+| Stakeholder | 검토 관점 |
+| --- | --- |
+| Device | Cell leakage, retention margin, sensing margin, device-level weak point |
+| Design | Sense amplifier timing, wordline/bitline timing, refresh policy, operating corner |
+| Process | Wafer edge/center distribution, lot variation, CD/implant/oxide variation |
+| Test / Quality / PE | Voltage-temperature-frequency condition, fail signature, shmoo, screening, reliability |
+| Customer / Application | AI accelerator workload, high bandwidth access, high temperature operation, system-level condition |
 
-- **Synthetic persona panel** — Korean persona sampling designed around Nemotron-Personas-Korea
-- **Brief preflight** — checks missing target, pricing, alternatives, and research assumptions
-- **Persona reactions** — adoption, need-fit, understanding, price resistance, risks, positive drivers
-- **Analyst interview mode** — multi-turn persona interviews that probe recent behavior, current alternatives, barriers, proof needs, and next action
-- **Objection mining** — recurring reasons people hesitate, grouped into actionable themes
-- **Segment recommendation** — beachhead segment suggestions with risk caveats
-- **Pricing sensitivity lab** — willingness-to-pay probes and price-friction signals
-- **Validation pack** — screener, field interview guide, survey draft, and experiment backlog
-- **Founder memo** — concise decision memo for go / refine / pivot discussions
-- **Run history** — save, reload, and compare simulation versions
-- **Self-hosting guardrails** — Basic Auth, rate limits, active job limits, and destructive API opt-in
+## 입력 예시
 
-## Quick start
-
-### 1. Install
-
-```bash
-git clone https://github.com/Jaeyeong-CHOI/upkinsey.git
-cd upkinsey
-
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e '.[persona]'
+```text
+DRAM 제품에서 고온 조건과 낮은 voltage margin에서 read fail이 증가한다.
 ```
 
-### 2. Configure secrets
+```text
+특정 wafer edge die에서만 fail rate가 높고, final test에서 특정 frequency 이상일 때 fail이 증가한다.
+```
+
+```text
+AI accelerator customer workload에서만 intermittent fail이 보고되었고, 내부 standard test에서는 재현되지 않는다.
+```
+
+## 출력 구조
+
+각 stakeholder는 다음 형식으로 응답합니다.
+
+- 관점 요약
+- 가능한 원인 후보
+- 확인해야 할 데이터
+- 추가 test 또는 검증 제안
+- 관련 부서와 커뮤니케이션할 질문
+
+마지막에는 `PE Engineer Summary`를 생성합니다.
+
+- 가장 가능성 높은 원인 후보 Top 3
+- 추가로 확인해야 할 데이터
+- 우선순위가 높은 검증 action item
+- 관련 부서별 커뮤니케이션 포인트
+- 고객 대응 관점에서 정리해야 할 메시지
+
+## 중요한 Guardrail
+
+이 프로젝트는 다음을 하지 않습니다.
+
+- 실제 NVIDIA, AMD 등 특정 기업의 내부 요구사항을 예측하지 않습니다.
+- AI가 불량 원인을 확정한다고 표현하지 않습니다.
+- PE 엔지니어의 판단을 대체한다고 표현하지 않습니다.
+
+대신 다음을 목표로 합니다.
+
+- GPU/AI accelerator customer 같은 application category 기반 validation concern 시뮬레이션
+- PE 엔지니어의 원인 후보 구조화 보조
+- 부서 간 커뮤니케이션 전 놓칠 수 있는 검증 관점 점검
+- 추가 검증 방향 제안
+
+## Tech Stack
+
+- Frontend: React/Babel prototype served as static files
+- Backend: Python `http.server` based local API server
+- LLM: Upstage Solar chat completion API
+- Storage: local JSON run history
+- Tests: Python `unittest`
+
+## Quick Start
+
+### 1. Clone
+
+```bash
+git clone https://github.com/choihyun-1110/hynix-pe-simulation.git
+cd hynix-pe-simulation
+```
+
+### 2. Install
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+### 3. Configure `.env`
 
 ```bash
 cp .env.example .env
@@ -94,13 +129,7 @@ UPKINSEY_BASIC_AUTH_USER=operator
 UPKINSEY_BASIC_AUTH_PASSWORD=change-this-password
 ```
 
-### 3. Run tests
-
-```bash
-PYTHONPATH=src python3 -m unittest discover -s tests -p 'test*.py' -v
-```
-
-### 4. Start the app
+### 4. Run
 
 ```bash
 python scripts/run_upkinsey_server.py --port 5173
@@ -109,119 +138,47 @@ python scripts/run_upkinsey_server.py --port 5173
 Open:
 
 ```text
-http://localhost:5173
+http://127.0.0.1:5173/Resonance.html?pe=1
 ```
 
-## Docker
+## Test
 
 ```bash
-docker build -t upkinsey .
-docker run --rm -p 5173:5173 \
-  -e UPSTAGE_API_KEY="$UPSTAGE_API_KEY" \
-  -e UPKINSEY_REQUIRE_BASIC_AUTH=1 \
-  -e UPKINSEY_BASIC_AUTH_USER=operator \
-  -e UPKINSEY_BASIC_AUTH_PASSWORD=change-this-password \
-  upkinsey
+python -m unittest discover -s tests
 ```
 
-## Configuration
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `UPSTAGE_API_KEY` | — | Server-side Upstage API key |
-| `UPSTAGE_MODEL` | `solar-pro3` | Solar chat model |
-| `UPSTAGE_BASE_URL` | Upstage chat completions URL | Chat completion endpoint |
-| `UPKINSEY_REQUIRE_BASIC_AUTH` | `1` in `.env.example` | Enable HTTP Basic Auth |
-| `UPKINSEY_BASIC_AUTH_USER` | — | Basic Auth username |
-| `UPKINSEY_BASIC_AUTH_PASSWORD` | — | Basic Auth password |
-| `UPKINSEY_ALLOW_DESTRUCTIVE_API` | `0` | Allow `DELETE /api/runs*` |
-| `UPKINSEY_MAX_PARALLEL_REQUESTS` | `2` | Persona API worker parallelism |
-| `UPKINSEY_MAX_ACTIVE_JOBS` | `2` | Process-wide active simulation jobs |
-| `UPKINSEY_RATE_LIMIT_PER_MINUTE` | `30` | Per-client mutating API rate limit |
-| `UPKINSEY_JOB_TTL_SECONDS` | `3600` | In-memory async job snapshot TTL |
-| `UPSTAGE_MAX_RETRIES` | `8` | Retry budget for 429/5xx/transport failures |
-| `UPSTAGE_MIN_REQUEST_INTERVAL_SECONDS` | `1.1` | Process-wide Upstage request spacing |
-
-See [`PUBLIC_DEPLOYMENT.md`](PUBLIC_DEPLOYMENT.md) for Render, Docker, auth, persistence, and production checklist notes.
-
-## API surface
+## API
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/health` | Health and deployment safety status |
-| `POST` | `/api/simulate/start` | Start async simulation job |
-| `GET` | `/api/simulate/jobs/{job_id}` | Poll simulation progress/result |
-| `POST` | `/api/persona-chat` | Ask one persona a follow-up question |
-| `POST` | `/api/analyst-question` | Run multi-turn analyst interviews |
-| `POST` | `/api/document-brief` | Extract product brief from PDF |
-| `GET` | `/api/runs` | List saved simulation versions |
-| `GET` | `/api/runs/{version_id}` | Load saved simulation result |
-| `GET` | `/api/runs/compare/{version_id}` | Compare with previous related run |
+| `GET` | `/api/health` | Server and API-key health check |
+| `POST` | `/api/pe-simulate` | Run semiconductor PE stakeholder simulation |
+| `GET` | `/api/runs` | List saved simulation runs |
+| `GET` | `/api/runs/{version_id}` | Load a saved simulation run |
 
-## Persona data
+The original market-research endpoints may still exist in the codebase, but the current product experience is focused on the PE stakeholder simulation flow.
 
-Upkinsey is designed around [nvidia/Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea). To sample a compact local JSONL panel:
-
-```bash
-python scripts/sample_nemotron_personas.py \
-  --seed 42 \
-  --n 100 \
-  --output data/personas/sample.jsonl
-```
-
-Sampled persona files and simulation outputs are gitignored by default.
-
-## Project structure
+## Project Structure
 
 ```text
-prototype/                 # React/Babel browser prototype served by Python
+prototype/                 # React/Babel browser prototype
 scripts/run_upkinsey_server.py
                            # Static server + API endpoints
-src/upstage_api_sim/       # Core simulation, Upstage client, run store
-examples/                  # Example product briefs
-docs/                      # Design, persona prompting, service docs
+src/upstage_api_sim/       # Simulation logic, Upstage client, run store
 tests/                     # Unit tests
-PUBLIC_DEPLOYMENT.md       # Self-hosting and production checklist
+docs/                      # Earlier design notes and references
 ```
 
-## Safety & privacy
+## Interview Framing
 
-- Keep API keys in `.env` or deployment secrets only. Never expose them to the browser.
-- Saved runs live under `data/simulation_runs/` and are gitignored.
-- Uploaded PDFs are parsed in-memory in the API flow; review retention/compliance requirements before production deployment.
-- Public deployments should enable Basic Auth, job limits, and rate limits.
-- Synthetic outputs are for hypothesis generation, not representative survey evidence.
+면접에서는 이 프로젝트를 다음처럼 설명할 수 있습니다.
 
-## Roadmap
+> 기존 Resonance는 제품 아이디어를 여러 AI persona에게 보여주고 반응을 시뮬레이션하는 구조였습니다. 저는 이 구조를 PE 직무 관점으로 재해석해, 소비자 persona 대신 Device, Design, Process, Test/Quality, Customer/Application stakeholder persona가 특정 fail pattern을 각자의 관점에서 검토하도록 만들었습니다.
 
-- [ ] Public demo mode that avoids exposing paid API quota
-- [ ] Pluggable persona providers
-- [ ] Database/object-store backend for multi-user deployments
-- [ ] Notion / Google Docs / Sheets export
-- [ ] CI workflow and container publish pipeline
-- [ ] Admin dashboard for cost, rate limit, and failure monitoring
+핵심 메시지:
 
-## Contributing
-
-Upkinsey is currently in beta. Contributions are welcome once the public workflow is opened up.
-
-1. Create a branch from `main`.
-2. Run the test suite before opening a PR.
-3. Do not commit secrets, sampled persona data, uploaded documents, or simulation outputs.
-4. Document new environment variables in `.env.example` and `PUBLIC_DEPLOYMENT.md`.
-
-## Team
-
-- [Jaeyeong CHOI](https://github.com/Jaeyeong-CHOI)
-- [@choihyun-1110](https://github.com/choihyun-1110)
-- [@Mo-zZaAa](https://github.com/Mo-zZaAa)
-
-## Attribution
-
-- LLM / reasoning layer: [Upstage Solar](https://console.upstage.ai/docs/capabilities/generate/chat)
-- Persona data support: [nvidia/Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea), licensed under CC-BY-4.0
-- Logo: original project artwork for Upkinsey
+> PE에서 AI는 정답을 대신 내리는 도구가 아니라, 소자·설계·공정·고객 관점에서 제품 이슈를 빠르게 구조화하고 놓친 검증 조건을 찾는 cross-functional reasoning assistant로 활용될 수 있다고 생각합니다.
 
 ## License
 
-MIT © Jaeyeong CHOI
+MIT
