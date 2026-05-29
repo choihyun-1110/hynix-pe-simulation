@@ -9,6 +9,8 @@ from upstage_api_sim.market_research import (
     aggregate_market_research,
     build_assumption_stress_test,
     build_analyst_question_plan,
+    build_persona_chat_prompt,
+    build_pe_stakeholder_prompt,
     build_custom_analyst_followup,
     build_competitive_benchmark,
     build_decision_board,
@@ -42,6 +44,7 @@ from upstage_api_sim.market_research import (
     select_personas_for_brief,
     select_analyst_target_personas,
     simulate_market_research,
+    simulate_semiconductor_pe_review,
     validate_brief,
 )
 from upstage_api_sim.upstage_client import UpstageClient, UpstageConfig
@@ -72,6 +75,13 @@ class FakeClient:
                 "need_fit_score": 75,
                 "adoption_likelihood": adoption,
                 "price_resistance": "Medium",
+                "amount_resistance": "Low",
+                "payment_friction": "Medium",
+                "value_confidence": "Low",
+                "trust_resistance": "Medium",
+                "would_try_if_free_or_1krw": True,
+                "reason_price_specific": "순수 금액은 낮다.",
+                "reason_non_price": "추천 근거가 필요하다.",
                 "concern": f"{name}의 우려",
                 "positive_drivers": ["실용성"],
                 "top_risks": ["가격 저항"],
@@ -94,6 +104,63 @@ class FakeChatClient:
                 "reply": "저는 가족 식단 조율에 도움이 되면 써볼 수 있지만, 추천 근거가 먼저 보여야 안심될 것 같아요.",
                 "signal": "trust",
                 "suggested_followup": "추천 근거를 어떤 방식으로 보여주면 신뢰가 생기나요?",
+            },
+            ensure_ascii=False,
+        )
+
+
+class RepeatingThenFreshChatClient:
+    def __init__(self):
+        self.calls = []
+
+    def complete_text(self, prompt, **kwargs):
+        self.calls.append(prompt)
+        if len(self.calls) == 1:
+            reply = "저라면, AI가 제시한 시정 요구서가 실제 법원에서 인정된 사례가 있다면 한번 써볼까 싶네요."
+        else:
+            reply = "안녕하세요. 방금 답을 반복한 것 같네요. 어떤 부분을 더 물어보고 싶으세요?"
+        return json.dumps(
+            {
+                "persona_name": "김다희",
+                "reply": reply,
+                "signal": "other",
+                "new_information": [],
+                "suggested_followup": "가격, 신뢰, 사용 상황 중 무엇을 물어볼까요?",
+            },
+            ensure_ascii=False,
+        )
+
+
+class FakePEClient:
+    def __init__(self):
+        self.prompts = []
+
+    def complete_text(self, prompt, **kwargs):
+        self.prompts.append(prompt)
+        if "Device Perspective" in prompt:
+            name = "Device Perspective"
+            causes = ["Temperature-dependent leakage", "Retention margin 감소", "Sensing margin 저하"]
+        elif "Design Perspective" in prompt:
+            name = "Design Perspective"
+            causes = ["Sense amplifier timing margin 부족", "Wordline/bitline timing sensitivity"]
+        elif "Process Perspective" in prompt:
+            name = "Process Perspective"
+            causes = ["Wafer edge process variation", "Lot-to-lot variation"]
+        elif "Customer / Application Perspective" in prompt:
+            name = "Customer / Application Perspective"
+            causes = ["AI accelerator workload 조건에서 burst access 반복"]
+        else:
+            name = "Test / Quality / PE Perspective"
+            causes = ["Voltage-temperature-frequency 조건 의존 fail signature"]
+        return json.dumps(
+            {
+                "persona_name": name,
+                "perspective_summary": f"{name} summary",
+                "possible_root_causes": causes,
+                "data_to_check": ["Temperature별 fail rate", "Voltage shmoo", "Wafer map"],
+                "suggested_tests": ["High-temperature retention test", "Voltage-frequency shmoo"],
+                "cross_team_questions": ["특정 lot 또는 wafer edge에 fail이 집중되는가?"],
+                "risk_factors": ["내부 standard test와 application workload 간 validation gap"],
             },
             ensure_ascii=False,
         )
@@ -142,6 +209,47 @@ class MarketResearchTests(unittest.TestCase):
         brief = validate_brief({"product_name": "x", "current_alternatives": "현재는 네이버 검색과 전화 문의로 해결"})
 
         self.assertEqual(brief["current_alternatives"], "현재는 네이버 검색과 전화 문의로 해결")
+
+    def test_pe_stakeholder_prompt_has_customer_guardrails(self):
+        prompt = build_pe_stakeholder_prompt(
+            {
+                "product_name": "DRAM",
+                "issue": "고온 및 낮은 voltage margin에서 read fail 증가",
+                "customer_requirement": "AI accelerator workload",
+            },
+            {
+                "id": "customer_application",
+                "name": "Customer / Application Perspective",
+                "role": "application category 관점",
+                "focus": ["AI accelerator workload"],
+            },
+        )
+
+        self.assertIn("AI가 불량 원인을 확정하지 않는다", prompt)
+        self.assertIn("application category", prompt)
+        self.assertIn("실제 NVIDIA, AMD", prompt)
+
+    def test_simulate_semiconductor_pe_review_returns_summary(self):
+        client = FakePEClient()
+
+        result = simulate_semiconductor_pe_review(
+            {
+                "product_name": "DRAM",
+                "description": "고온 조건과 낮은 voltage margin에서 read fail이 증가한다.",
+                "selected_stakeholders": ["device", "design", "customer_application"],
+            },
+            client=client,
+            max_workers=3,
+        )
+
+        self.assertEqual(result["simulation_mode"], "semiconductor_pe")
+        self.assertEqual(len(result["stakeholder_analyses"]), 3)
+        self.assertEqual(len(client.prompts), 3)
+        self.assertIn("top_root_cause_candidates", result["pe_engineer_summary"])
+        self.assertIn("guardrail", result["pe_engineer_summary"])
+        self.assertTrue(
+            any(analysis["id"] == "customer_application" for analysis in result["stakeholder_analyses"])
+        )
 
     def test_assess_brief_quality_uses_current_alternatives_as_switching_context(self):
         quality = assess_brief_quality(
@@ -1538,12 +1646,17 @@ class MarketResearchTests(unittest.TestCase):
         )
 
         context = result["persona_reactions"][0]["persona_context"]
+        reaction = result["persona_reactions"][0]
         self.assertEqual(context["name"], "김다희")
         self.assertEqual(context["occupation"], "직장인")
         self.assertIn("부모님", context["family_context"])
         self.assertEqual(context["interests"], ["요리", "러닝"])
         self.assertEqual(context["source"]["uuid"], "persona-uuid-1")
         self.assertNotIn("unused_private_field", context)
+        self.assertEqual(reaction["amount_resistance"], "Low")
+        self.assertEqual(reaction["payment_friction"], "Medium")
+        self.assertEqual(reaction["value_confidence"], "Low")
+        self.assertTrue(reaction["would_try_if_free_or_1krw"])
 
     def test_chat_with_persona_returns_grounded_reply(self):
         client = FakeChatClient()
@@ -1556,7 +1669,19 @@ class MarketResearchTests(unittest.TestCase):
                 "adoption_likelihood": 62,
                 "need_fit_score": 70,
                 "price_resistance": "Medium",
+                "amount_resistance": "Low",
+                "payment_friction": "Medium",
+                "value_confidence": "Low",
+                "trust_resistance": "Medium",
+                "reason_price_specific": "1원은 부담이 아니다.",
+                "reason_non_price": "추천 근거가 먼저 필요하다.",
                 "concern": "추천 정확도와 데이터 관리 방식을 확인하고 싶어함",
+                "persona_context": {
+                    "name": "김다희",
+                    "occupation": "보호자",
+                    "family_context": "부모님 식단을 챙기고 병원 일정을 확인한다.",
+                    "goals": "부모님 건강 관리를 쉽게 하고 싶다.",
+                },
             },
             "이 가격이면 왜 망설이나요?",
             history=[{"role": "user", "content": "첫 반응은 어때요?"}],
@@ -1567,6 +1692,52 @@ class MarketResearchTests(unittest.TestCase):
         self.assertEqual(result["signal"], "trust")
         self.assertIn("추천 근거", result["reply"])
         self.assertIn("[USER QUESTION]", client.prompt)
+        self.assertIn("[PERSONA CONTEXT]", client.prompt)
+        self.assertIn("부모님 식단", client.prompt)
+        self.assertIn("1원은 부담이 아니다", client.prompt)
+
+    def test_persona_chat_prompt_treats_initial_result_as_reference_not_script(self):
+        prompt = build_persona_chat_prompt(
+            {"product_name": "테스트 앱", "pricing": ["1원"]},
+            {
+                "name": "박민수",
+                "price_resistance": "High",
+                "amount_resistance": "Low",
+                "payment_friction": "High",
+                "reason_non_price": "효용을 아직 믿지 못한다.",
+                "concern": "초기 판정 문장",
+                "persona_context": {"occupation": "카페 사장", "professional_context": "리뷰 답글에 매일 시간을 쓴다."},
+            },
+            "1원인데도 비싸다고 느끼는 건가요?",
+        )
+
+        self.assertIn("PERSONA CONTEXT를 우선 근거", prompt)
+        self.assertIn("이전 첫 반응으로만 참고", prompt)
+        self.assertIn("amount_resistance", prompt)
+        self.assertIn("payment_friction", prompt)
+
+    def test_chat_with_persona_retries_when_reply_repeats_recent_history(self):
+        client = RepeatingThenFreshChatClient()
+
+        result = chat_with_persona(
+            {"product_name": "법률 문서 앱", "pricing": ["1원"]},
+            {
+                "name": "김다희",
+                "meta": "46세 · 경기",
+                "persona_context": {"occupation": "자영업자"},
+                "concern": "법적 책임 범위 확인 필요",
+            },
+            "안녕",
+            history=[
+                {"role": "persona", "content": "저라면, AI가 제시한 시정 요구서가 실제 법원에서 인정된 사례가 있다면 한번 써볼까 싶네요."},
+                {"role": "user", "content": "안녕"},
+            ],
+            client=client,
+        )
+
+        self.assertEqual(len(client.calls), 2)
+        self.assertIn("방금 답을 반복", result["reply"])
+        self.assertIn("[RETRY INSTRUCTION]", client.calls[1])
 
     def test_select_analyst_target_personas_covers_question_and_intent_range(self):
         reactions = [

@@ -77,12 +77,12 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
   }, [pricingKey]);
 
   const fields = [
-    { key: "productName", label: "제품 이름", filled: !!brief.productName },
-    { key: "description", label: "한 줄 설명", filled: !!brief.description },
-    { key: "features",    label: "핵심 기능", filled: (brief.features || []).length > 0 },
-    { key: "pricing",     label: "가격 옵션", filled: (brief.pricing || []).length > 0 },
-    { key: "target",      label: "타깃 고객", filled: !!brief.target },
-    { key: "alternatives",label: "현재 대안", filled: !!brief.alternatives },
+    { key: "productName", label: "제품/이슈 이름", filled: !!brief.productName },
+    { key: "description", label: "Fail pattern", filled: !!brief.description },
+    { key: "features",    label: "Known data", filled: (brief.features || []).length > 0 },
+    { key: "pricing",     label: "Test condition", filled: (brief.pricing || []).length > 0 },
+    { key: "target",      label: "Customer/Application 조건", filled: !!brief.target },
+    { key: "alternatives",label: "내부 재현/standard test", filled: !!brief.alternatives },
     { key: "hypothesis",  label: "확인하고 싶은 가설", filled: !!brief.hypothesis }
   ];
   const filledCount = fields.filter(f => f.filled).length;
@@ -96,9 +96,9 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
   return (
     <div className="page" data-screen-label="01 Brief">
       <div className="page-head">
-        <div className="page-eyebrow">1단계 · 제품 정보 입력</div>
-        <h1 className="page-title">시장에 보여줄<br /><em>제품을 한 줄로 소개해주세요</em></h1>
-        <p className="page-sub">여기 적어주시는 내용을 다음 단계에서 합성 응답자가 처음 보게 됩니다. 광고 카피처럼 짧고 분명하게 적어주세요.</p>
+        <div className="page-eyebrow">1단계 · PE 이슈 입력</div>
+        <h1 className="page-title">반도체 제품 이슈를<br /><em>검증 가능한 형태로 적어주세요</em></h1>
+        <p className="page-sub">Fail pattern, test condition, customer/application 조건을 입력하면 PE 관점에서 놓칠 수 있는 검증 질문을 정리합니다.</p>
       </div>
 
       <div className="brief-layout">
@@ -106,8 +106,8 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
           <div className="card-head ai-card-head">
             <span className="card-tag">1단계</span>
             <div className="card-head-main">
-              <div className="card-title">제품 정보</div>
-              <div className="card-sub">최소 3개 항목만 채워도 시작할 수 있어요. 많이 채울수록 결과가 정확해집니다.</div>
+              <div className="card-title">제품 이슈 정보</div>
+              <div className="card-sub">최소 3개 항목만 채워도 시작할 수 있어요. 조건이 구체적일수록 stakeholder별 검토가 선명해집니다.</div>
             </div>
             <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" style={{ display: "none" }} onChange={handlePdfUpload} />
             <button className="ai-import-btn" onClick={triggerUpload} disabled={!onParseDocument || parseStatus?.state === "uploading"} title="PDF를 업로드하면 Upstage Document Parse API가 제품 정보를 자동으로 채웁니다.">
@@ -137,40 +137,40 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
           <div className="card-body">
             <div className="field">
               <label className="field-label">
-                제품 이름 <span className="req">*</span>
-                <span className="field-help">고객에게 그대로 보여줘도 부끄럽지 않을 이름이면 좋아요.</span>
+                제품/이슈 이름 <span className="req">*</span>
+                <span className="field-help">제품군이나 이슈를 짧게 적어주세요.</span>
               </label>
-              <input className="input" placeholder="예) AI 식단 코치 앱"
+              <input className="input" placeholder="예) DRAM high-temp low-V read fail"
                      value={brief.productName} onChange={e => update("productName", e.target.value)} />
             </div>
 
             <div className="field">
               <label className="field-label">
-                한 줄 설명 <span className="req">*</span>
-                <span className="field-help">‘누구의 어떤 문제를, 어떻게'가 한 문장에 들어가면 충분합니다.</span>
+                Fail pattern / 제품 이슈 <span className="req">*</span>
+                <span className="field-help">어떤 조건에서 어떤 fail이 증가하는지 적어주세요.</span>
               </label>
               <textarea className="textarea" rows="3"
-                        placeholder="예) 혼자 사시는 어르신의 외로움을, 강아지처럼 반응하는 가정용 로봇이 매일 교감으로 채워드립니다."
+                        placeholder="예) DRAM 제품에서 고온 조건과 낮은 voltage margin에서 read fail이 증가한다."
                         value={brief.description} onChange={e => update("description", e.target.value)} />
             </div>
 
             <div className="grid-2">
               <div className="field">
                 <label className="field-label">
-                  핵심 기능
-                  <span className="field-help">3~5개. 한 줄에 하나씩 입력해주세요. 붙여넣기는 쉼표도 인식합니다.</span>
+                  확인된 데이터 / 관찰값
+                  <span className="field-help">Wafer map, shmoo, lot 분포 등 한 줄에 하나씩 입력해주세요.</span>
                 </label>
-                <textarea className="textarea compact-textarea list-textarea" rows="5" placeholder={"예) 음성 대화\n건강 알림\n가족 화상"}
+                <textarea className="textarea compact-textarea list-textarea" rows="5" placeholder={"예) 고온에서 fail 증가\n저전압 margin 축소\n특정 wafer edge die fail 집중"}
                           value={featuresText}
                           onChange={e => updateList("features", e.target.value)} />
               </div>
 
               <div className="field">
                 <label className="field-label">
-                  가격 옵션
-                  <span className="field-help">가격의 쉼표(30,000원)는 그대로 두고, 옵션은 엔터로 구분해주세요.</span>
+                  Test condition
+                  <span className="field-help">전압, 온도, frequency, stress 조건을 입력해주세요.</span>
                 </label>
-                <textarea className="textarea compact-textarea list-textarea" rows="3" placeholder={"예) 월 39,000원\n본체 290,000원"}
+                <textarea className="textarea compact-textarea list-textarea" rows="3" placeholder={"예) High temperature\nLow voltage margin\nFinal test 특정 frequency 이상"}
                           value={pricingText}
                           onChange={e => updateList("pricing", e.target.value)} />
               </div>
@@ -178,20 +178,20 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
 
             <div className="field">
               <label className="field-label">
-                누구를 위한 제품인가요?
-                <span className="field-help">나이대, 지역, 직업, 생활 맥락을 한 문장에 담아주세요.</span>
+                Customer/Application 조건
+                <span className="field-help">실제 고객사 이름 대신 workload 또는 application category로 적어주세요.</span>
               </label>
-              <input className="input" placeholder="예) 자녀와 떨어져 사는 60~75세 1인 가구"
+              <input className="input" placeholder="예) AI accelerator workload, high bandwidth burst access, high temperature operation"
                      value={brief.target} onChange={e => update("target", e.target.value)} />
             </div>
 
             <div className="field">
               <label className="field-label">
-                지금 사용자는 이 문제를 어떻게 해결하고 있나요?
-                <span className="field-help">대안을 적어주시면, 응답자가 ‘이 제품을 왜 굳이?'라고 비교할 수 있어요.</span>
+                내부 standard test / 재현 상황
+                <span className="field-help">내부 test에서 재현되는지, 고객 workload에서만 보이는지 적어주세요.</span>
               </label>
               <textarea className="textarea" rows="2"
-                        placeholder="예) AI 스피커, TV, 자녀의 안부 전화, 노인복지관 프로그램"
+                        placeholder="예) 내부 standard test에서는 재현되지 않고, customer workload 조건에서 intermittent fail 보고"
                         value={brief.alternatives} onChange={e => update("alternatives", e.target.value)} />
             </div>
 
@@ -211,7 +211,7 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
               </div>
               <button className="btn btn-primary" onClick={goNext} disabled={!canRun}
                       style={{ opacity: canRun ? 1 : 0.5, cursor: canRun ? "pointer" : "not-allowed" }}>
-                {canRun ? "다음: 응답자에게 보여주기" : "최소 3개 항목을 채워주세요"}
+                {canRun ? "다음: PE stakeholder simulation" : "최소 3개 항목을 채워주세요"}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -223,17 +223,17 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
         {/* Blueprint side */}
         <div className="blueprint">
           <div className="bp-eyebrow">미리 보기</div>
-          <div className="bp-title-help">응답자가 받게 될 제품 소개입니다.</div>
+          <div className="bp-title-help">PE stakeholder에게 전달될 이슈 brief입니다.</div>
 
           <div className="bp-section">
-            <div className="bp-key">제품 이름</div>
+            <div className="bp-key">제품/이슈 이름</div>
             <div className={"bp-val" + (!brief.productName ? " empty" : "")}>
               {brief.productName || "아직 비어있어요"}
             </div>
           </div>
 
           <div className="bp-section">
-            <div className="bp-key">한 줄 설명</div>
+            <div className="bp-key">Fail pattern</div>
             <div className={"bp-val" + (!brief.description ? " empty" : "")}
                  style={{ fontSize: 14, lineHeight: 1.6 }}>
               {brief.description || "여기에 한 줄 설명이 보여요"}
@@ -241,7 +241,7 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
           </div>
 
           <div className="bp-section">
-            <div className="bp-key">핵심 기능</div>
+            <div className="bp-key">확인된 데이터</div>
             <div className="bp-chips">
               {(brief.features || []).length > 0
                 ? brief.features.map((f, i) => <span key={i} className="chip">{f}</span>)
@@ -250,16 +250,16 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
           </div>
 
           <div className="bp-section">
-            <div className="bp-key">가격</div>
+            <div className="bp-key">Test condition</div>
             <div className="bp-chips">
               {(brief.pricing || []).length > 0
                 ? brief.pricing.map((p, i) => <span key={i} className="chip neutral">{p}</span>)
-                : <span className="bp-val empty" style={{ fontSize: 14 }}>가격을 적어주세요</span>}
+                : <span className="bp-val empty" style={{ fontSize: 14 }}>조건을 적어주세요</span>}
             </div>
           </div>
 
           <div className="bp-section">
-            <div className="bp-key">타깃 고객</div>
+            <div className="bp-key">Customer/Application</div>
             <div className={"bp-val" + (!brief.target ? " empty" : "")}
                  style={{ fontSize: 14 }}>
               {brief.target || "누구를 위한 제품인지 적어주세요"}
@@ -291,95 +291,42 @@ function BriefScreen({ brief, setBrief, goNext, onParseDocument = null, parseSta
 
 /* ====================== RUN (2단계) ====================== */
 
-const TESTS = [
-  { id: "concept",  num: "01", name: "컨셉 반응 보기",
-    desc: "제품 자체가 마음에 드는지, 어떤 부분이 와닿는지 봐요." },
-  { id: "pricing",  num: "02", name: "가격 반응 보기",
-    desc: "가격이 부담스러운지, 어떤 가격대에서 ‘살까?'로 마음이 기우는지 봐요." },
-  { id: "message",  num: "03", name: "카피 비교하기",
-    desc: "헤드라인 후보 여러 개를 동시에 보여주고 어느 게 더 먹히는지 비교해요." },
-  { id: "objection",num: "04", name: "거부 이유 찾기",
-    desc: "‘이래서 안 사요'라는 이유를 카테고리별로 모아요." },
-  { id: "segment",  num: "05", name: "핵심 고객 찾기",
-    desc: "응답자 중 누가 가장 반응이 좋은지 봐요. 첫 타깃을 좁힐 때 유용해요." }
-];
-
-const TEST_DETAIL = {
-  concept:   "‘이 제품, 와닿는다 vs 별로다'를 가르는 가장 큰 신호를 확인합니다. 처음 만든 컨셉이거나 메시지를 통째로 바꿨다면 이 모드부터 시작하세요.",
-  pricing:   "‘너무 비싸다 vs 합리적이다'의 경계가 어디인지 봅니다. 가격대 후보가 2개 이상일 때 유용해요.",
-  message:   "헤드라인 후보 여러 개를 동시에 보여주고, 가장 적은 거부를 만드는 카피가 어떤 건지 비교합니다.",
-  objection: "왜 마음이 안 움직이는지를 카테고리(가격, 신뢰, 사용법 등)로 분해합니다. 다음 라운드에서 무엇을 손볼지 잡을 때 좋아요.",
-  segment:   "응답자별 반응을 세그먼트로 쪼개서, 어떤 사람이 가장 먼저 사줄지 후보를 도출합니다."
-};
-
 function RunScreen({ brief, onRun, goBack, running = false, progress = null }) {
-  const [test, setTest] = useStateBR("concept");
-  const [sampleSize, setSampleSize] = useStateBR(8);
-  const [seed, setSeed] = useStateBR(42);
-
   return (
     <div className="page" data-screen-label="02 Run">
       <div className="page-head">
         <div className="page-eyebrow">2단계 · 시뮬레이션 실행</div>
-        <h1 className="page-title">합성 응답자가<br /><em>당신의 제품을 처음 듣습니다</em></h1>
-        <p className="page-sub">전국 분포에서 샘플링된 가상 응답자가 제품 소개를 받아 읽고, 자기 입장에서 솔직한 반응을 돌려줘요. 무엇을 검증할지 한 가지만 골라주세요.</p>
+        <h1 className="page-title">반도체 stakeholder가<br /><em>제품 이슈를 사전 검토합니다</em></h1>
+        <p className="page-sub">Device, Design, Process, Test/Quality, Customer/Application 관점에서 가능한 원인 후보와 추가 검증 항목을 정리합니다.</p>
       </div>
 
       <div className="card">
-        <div className="card-head">
-          <span className="card-tag">2단계</span>
-          <div>
-            <div className="card-title">무엇을 확인할까요?</div>
-            <div className="card-sub">시뮬레이션 모드 하나를 고르면, 거기에 맞춰 응답자에게 질문하는 방식이 달라져요.</div>
+          <div className="card-head">
+            <span className="card-tag">2단계</span>
+            <div>
+              <div className="card-title">무엇을 확인할까요?</div>
+              <div className="card-sub">PE 엔지니어가 관련 부서와 커뮤니케이션하기 전에 놓칠 수 있는 검증 관점을 점검합니다.</div>
+            </div>
           </div>
-        </div>
         <div className="card-body">
-          <div className="test-grid">
-            {TESTS.map(t => (
-              <div key={t.id}
-                   className={"test-card" + (test === t.id ? " active" : "")}
-                   onClick={() => setTest(t.id)}>
-                <div className="test-name">
-                  <span className="test-num">{t.num}</span>
-                  {t.name}
-                </div>
+          <div className="test-grid" style={{ marginBottom: 18 }}>
+            {[
+              { num: "01", name: "Device", desc: "Leakage, retention margin, sensing margin, device-level weak point를 검토합니다." },
+              { num: "02", name: "Design", desc: "Sense amplifier, timing slack, refresh, operating corner sensitivity를 검토합니다." },
+              { num: "03", name: "Process", desc: "Wafer 위치, lot 편차, CD/implant/oxide variation correlation을 검토합니다." },
+              { num: "04", name: "Test / Quality", desc: "V-T-F condition, fail signature, shmoo, screening, reliability 조건을 검토합니다." },
+              { num: "05", name: "Customer / Application", desc: "AI accelerator, data center, mobile 등 application category 기반 validation concern을 검토합니다." }
+            ].map(t => (
+              <div key={t.name} className="test-card active">
+                <div className="test-name"><span className="test-num">{t.num}</span>{t.name}</div>
                 <div className="test-desc">{t.desc}</div>
               </div>
             ))}
           </div>
 
           <div className="test-detail-card">
-            <div className="test-detail-eyebrow">선택한 모드 · {TESTS.find(t => t.id === test).name}</div>
-            <div className="test-detail-body">{TEST_DETAIL[test]}</div>
-          </div>
-
-          <div className="run-config">
-            <div className="config-block">
-              <div className="config-label">패널 규모 (응답자 수)</div>
-              <div className="config-val">{sampleSize}<span className="unit">명</span></div>
-              <div className="slider-row">
-                <input type="range" min="4" max="100" step="2" value={sampleSize}
-                       className="slider"
-                       style={{ "--pct": (((sampleSize - 4) / 96) * 100) + "%" }}
-                       onChange={e => setSampleSize(Number(e.target.value))} />
-                <span className="dim" style={{ fontSize: 12, minWidth: 50, textAlign: "right" }}>4~100명</span>
-              </div>
-              <div className="config-hint">기본 8명이면 빠르게 신호를 봐요. 정밀 검증은 24명 이상.</div>
-            </div>
-            <div className="config-block">
-              <div className="config-label">샘플링 시드</div>
-              <div className="config-val">{seed}</div>
-              <div className="slider-row">
-                <input className="input" style={{ padding: "8px 14px" }}
-                       value={seed} type="number"
-                       onChange={e => setSeed(Number(e.target.value || 0))} />
-                <button className="btn-ghost" style={{ padding: "8px 14px", fontSize: 12 }}
-                        onClick={() => setSeed(Math.floor(Math.random() * 9999))}>
-                  랜덤
-                </button>
-              </div>
-              <div className="config-hint">같은 시드면 같은 응답자가 다시 응답해요. 비교 실험할 때 유용해요.</div>
-            </div>
+            <div className="test-detail-eyebrow">실행 모드 · Semiconductor PE stakeholder simulation</div>
+            <div className="test-detail-body">AI가 정답을 확정하는 것이 아니라, PE 엔지니어가 원인 후보·확인 데이터·추가 test·부서별 질문을 빠르게 구조화하도록 돕습니다. 실제 고객사는 이름으로 모방하지 않고 application category로만 다룹니다.</div>
           </div>
 
           <div className="dataset-card">
@@ -389,20 +336,20 @@ function RunScreen({ brief, onRun, goBack, running = false, progress = null }) {
               </svg>
             </div>
             <div>
-              <div className="dataset-name">한국인 페르소나 데이터셋 활용</div>
+              <div className="dataset-name">Cross-functional stakeholder preset</div>
               <div className="dataset-desc">
-                이름·지역·나이·직업·가족 구성이 실제 통계 분포를 따라요 (nvidia/Nemotron-Personas-Korea)
+                Device, Design, Process, Test/Quality, Customer/Application 관점의 PE reasoning assistant로 실행합니다.
               </div>
             </div>
           </div>
 
           <div className="run-cta">
             <div className="cta-meta">
-              <span><b>{sampleSize}명</b> 응답</span>
+              <span><b>5개</b> stakeholder</span>
               <span>·</span>
-              <span>예상 시간 <b>약 {Math.max(8, Math.round(sampleSize * 1.4))}초</b></span>
+              <span>예상 시간 <b>약 15초</b></span>
               <span>·</span>
-              <span>검증 가드레일 3개</span>
+              <span>고객사 모방 방지 guardrail</span>
             </div>
             <div className="row">
               <button className="btn" onClick={goBack}>
@@ -411,7 +358,7 @@ function RunScreen({ brief, onRun, goBack, running = false, progress = null }) {
                 </svg>
                 돌아가서 다시 적기
               </button>
-              <button className="btn btn-primary" onClick={() => onRun({ test, sampleSize, seed })} disabled={running}>
+              <button className="btn btn-primary" onClick={() => onRun({ mode: "pe" })} disabled={running}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M8 5v14l11-7z" fill="currentColor" />
                 </svg>

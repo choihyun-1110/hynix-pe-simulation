@@ -1,15 +1,12 @@
-/* 업킨지 앤 컴퍼니 — Drive zip UI wired to live backend */
+/* Resonance PE — semiconductor stakeholder simulation UI wired to live backend */
 /* global React, RESONANCE_DATA, useTweaks, TweaksPanel, TweakSection, TweakRadio */
 
 const { useState, useEffect, useRef } = React;
 
 const LAYERS = [
-  { id: "brief",    num: "1", name: "입력",     sub: "제품 정보를 적어요" },
-  { id: "run",      num: "2", name: "실행",     sub: "응답자에게 보여줘요" },
-  { id: "signals",  num: "3", name: "결과",     sub: "시장 반응을 봐요" },
-  { id: "personas", num: "4", name: "응답자",   sub: "한 명씩 들여다봐요" },
-  { id: "analyst",  num: "5", name: "분석가",   sub: "질문을 다시 설계해요" },
-  { id: "report",   num: "6", name: "리포트",   sub: "다음 액션을 정해요" }
+  { id: "brief",    num: "1", name: "이슈 입력", sub: "fail pattern을 적어요" },
+  { id: "run",      num: "2", name: "PE 실행",   sub: "stakeholder 관점으로 봐요" },
+  { id: "signals",  num: "3", name: "PE 리뷰",   sub: "검증 액션을 정리해요" }
 ];
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -19,7 +16,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 
 const SESSION_KEY = "upkinsey.resonance.session.v2";
 const SESSION_SCHEMA_VERSION = 3;
-const RESULT_LAYERS = new Set(["signals", "personas", "analyst", "report"]);
+const RESULT_LAYERS = new Set(["signals"]);
 
 function loadSession() {
   try {
@@ -68,16 +65,20 @@ function priceKo(value) {
 function parseMeta(meta = "", idx = 0) {
   const age = Number((String(meta).match(/(\d{2})\s*세/) || [])[1]) || [58,55,42,66,39,52,63,47][idx % 8];
   const bits = String(meta).split(/[·,/]/).map(s => s.trim()).filter(Boolean);
-  return { age, region: bits.find(b => !/세/.test(b)) || "대한민국", role: bits[bits.length - 1] || "소비자" };
+  return { age, region: bits.find(b => !/세/.test(b)) || "대한민국", role: bits[bits.length - 1] || "PE stakeholder" };
 }
 function toBackendBrief(brief, config = {}) {
   return {
     product_name: brief.productName || "제품",
+    issue: brief.description || brief.hypothesis || "",
     description: brief.description || "",
     features: asList(brief.features),
     pricing: asList(brief.pricing),
+    test_condition: asList(brief.pricing).join(", "),
     target_market: brief.target || "",
+    customer_requirement: brief.target || "",
     current_alternatives: brief.alternatives || "",
+    known_data: asList(brief.features),
     hypothesis: brief.hypothesis || "",
     research_type: RESEARCH_TYPE_BY_MODE[config.test] || config.research_type || "Concept test",
     sample_size: Number(config.sampleSize || 8),
@@ -140,6 +141,12 @@ function mapPersona(raw = {}, idx = 0) {
     buyCondition: raw.buy_condition || raw.buyCondition || raw.next_validation_question || "추가 근거 확인 후 판단",
     adoption, need, understanding,
     price: priceKo(raw.price_resistance || raw.price),
+    amountResistance: priceKo(raw.amount_resistance || raw.price_amount_resistance || raw.price_resistance || raw.price),
+    paymentFriction: priceKo(raw.payment_friction || raw.price_resistance || raw.price),
+    valueConfidence: raw.value_confidence || null,
+    trustResistance: priceKo(raw.trust_resistance || "보통"),
+    reasonPriceSpecific: raw.reason_price_specific || "",
+    reasonNonPrice: raw.reason_non_price || "",
     core: raw.concern || raw.core || raw.reply || "아직 핵심 반응이 없습니다.",
     drivers: asList(raw.positive_drivers || raw.drivers),
     risks: asList(raw.top_risks || raw.risks),
@@ -195,7 +202,11 @@ function mapResultToResonance(result, brief, versions = []) {
   };
 }
 
-function NoResultScreen({ goRun, message = "먼저 제품 정보를 입력하고 시뮬레이션을 실행해주세요." }) {
+function isPEResult(result) {
+  return result?.simulation_mode === "semiconductor_pe";
+}
+
+function NoResultScreen({ goRun, message = "먼저 반도체 제품 이슈를 입력하고 PE stakeholder simulation을 실행해주세요." }) {
   return (
     <div className="page" data-screen-label="No Result">
       <div className="page-head">
@@ -205,8 +216,90 @@ function NoResultScreen({ goRun, message = "먼저 제품 정보를 입력하고
       </div>
       <div className="action-card">
         <div className="action-eyebrow">다음 단계</div>
-        <div className="action-headline">제품 brief를 확인한 뒤 Solar/Nemotron 패널을 실행하세요.</div>
+        <div className="action-headline">제품 이슈, fail pattern, test condition을 확인한 뒤 PE stakeholder simulation을 실행하세요.</div>
         <div className="action-cta"><button className="btn btn-primary" onClick={goRun}>실행 단계로 이동</button></div>
+      </div>
+    </div>
+  );
+}
+
+function PEList({ title, items }) {
+  const list = asList(items);
+  if (!list.length) return null;
+  return (
+    <div className="pd-section">
+      <div className="pd-shead">{title}</div>
+      <ul className="pd-list">{list.map((item, i) => <li key={i}>{item}</li>)}</ul>
+    </div>
+  );
+}
+
+function PESimulationScreen({ result, goBack, goRestart }) {
+  const analyses = asList(result?.stakeholder_analyses);
+  const summary = result?.pe_engineer_summary || {};
+  const communication = summary.cross_team_communication_points || {};
+  return (
+    <div className="page" data-screen-label="Semiconductor PE">
+      <div className="page-head">
+        <div className="page-eyebrow">Semiconductor PE mode</div>
+        <h1 className="page-title">제품 이슈를<br /><em>stakeholder 관점으로 분해했습니다</em></h1>
+        <p className="page-sub">{result?.issue || "입력된 fail pattern과 test condition을 기준으로 device, design, process, test/quality, customer/application 관점을 점검합니다."}</p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 18 }}>
+        <div className="card-head">
+          <span className="card-tag">PE Summary</span>
+          <div>
+            <div className="card-title">PE Engineer Summary</div>
+            <div className="card-sub">{summary.guardrail || "AI는 원인을 확정하지 않고 추가 검증 방향을 제안합니다."}</div>
+          </div>
+        </div>
+        <div className="card-body">
+          <div className="grid-2">
+            <PEList title="가능성 높은 원인 후보 Top 3" items={summary.top_root_cause_candidates} />
+            <PEList title="우선 검증 action item" items={summary.priority_action_items} />
+            <PEList title="추가 확인 데이터" items={summary.data_to_check} />
+            <PEList title="고객 대응 메시지" items={summary.customer_response_message} />
+          </div>
+          {Object.keys(communication).length > 0 && (
+            <div className="pd-section">
+              <div className="pd-shead">부서별 커뮤니케이션 포인트</div>
+              <div className="persona-cards" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+                {Object.entries(communication).map(([team, questions]) => (
+                  <div className="persona-card" key={team}>
+                    <div className="persona-card-top">
+                      <div className="persona-card-name">{team}</div>
+                    </div>
+                    <ul className="pd-list">{asList(questions).map((q, i) => <li key={i}>{q}</li>)}</ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="persona-cards" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+        {analyses.map(analysis => (
+          <div className="persona-card" key={analysis.id}>
+            <div className="persona-card-top">
+              <div>
+                <div className="persona-card-name">{analysis.persona_name}</div>
+                <div className="persona-card-meta">{analysis.role}</div>
+              </div>
+            </div>
+            <div className="pd-summary">{analysis.perspective_summary}</div>
+            <PEList title="가능한 원인 후보" items={analysis.possible_root_causes} />
+            <PEList title="확인해야 할 데이터" items={analysis.data_to_check} />
+            <PEList title="추가 test 또는 검증" items={analysis.suggested_tests} />
+            <PEList title="관련 부서 질문" items={analysis.cross_team_questions} />
+          </div>
+        ))}
+      </div>
+
+      <div className="run-cta" style={{ marginTop: 24 }}>
+        <button className="btn" onClick={goBack}>실행 단계로 돌아가기</button>
+        <button className="btn btn-primary" onClick={goRestart}>새 이슈 입력</button>
       </div>
     </div>
   );
@@ -216,12 +309,12 @@ function Nav({ current, setCurrent, savedTime, apiState, onReset }) {
   return (
     <nav className="nav" data-screen-label="Nav">
       <div className="shell nav-inner">
-        <a className="brand" href="index.html" title="업킨지 앤 컴퍼니 홈으로">
+        <a className="brand" href="index.html" title="Resonance PE 홈으로">
           <div className="brand-mark">
             <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" /><circle cx="16" cy="16" r="11" stroke="currentColor" strokeWidth="1.2" opacity="0.6" /><circle cx="16" cy="16" r="2.2" fill="currentColor" /></svg>
           </div>
-          <span>업킨지 앤 컴퍼니</span>
-          <span className="brand-sub">출시 전 시장 반응 시뮬레이션</span>
+          <span>Resonance PE</span>
+          <span className="brand-sub">Semiconductor stakeholder simulation</span>
         </a>
         <div className="nav-layers">
           {LAYERS.map((L, i) => {
@@ -397,15 +490,23 @@ function App() {
     setError("");
     setAnalystResult(null);
     setResult(null);
-    setApiState({ label: "API 실행 중", detail: "Solar Pro 3 persona 응답 생성 중" });
+    setApiState({ label: "API 실행 중", detail: "Solar Pro 3 PE stakeholder 응답 생성 중" });
     try {
       const backendBrief = toBackendBrief(brief, config);
       const runBriefHash = briefFingerprint(brief);
-      const response = await fetch(apiPath("/api/simulate/start"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(backendBrief), signal: controller.signal });
-      if (!response.ok) throw new Error(`API ${response.status}`);
-      const job = await response.json();
-      if (job.error) throw new Error(job.message || job.error);
-      const payload = await pollJob(job.job_id, runToken, controller.signal);
+      let payload;
+      if (config.mode !== "market") {
+        const response = await fetch(apiPath("/api/pe-simulate"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(backendBrief), signal: controller.signal });
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        payload = await response.json();
+        if (payload.error) throw new Error(payload.message || payload.error);
+      } else {
+        const response = await fetch(apiPath("/api/simulate/start"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(backendBrief), signal: controller.signal });
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        const job = await response.json();
+        if (job.error) throw new Error(job.message || job.error);
+        payload = await pollJob(job.job_id, runToken, controller.signal);
+      }
       if (activeRunRef.current !== runToken) return;
       const ownedPayload = { ...payload, __briefHash: runBriefHash };
       setResult(ownedPayload);
@@ -429,9 +530,9 @@ function App() {
     if (!liveResult) return null;
     if (analystProgressTimerRef.current) clearInterval(analystProgressTimerRef.current);
     const messages = [
-      "질문 의도를 분석하고 적합한 응답자를 고르는 중",
+      "질문 의도를 분석하고 적합한 stakeholder 관점을 고르는 중",
       "선택한 페르소나별 인터뷰 질문을 다시 쓰는 중",
-      "응답자에게 후속 질문을 던지고 대화 맥락을 모으는 중",
+      "stakeholder 관점별 후속 질문과 근거를 모으는 중",
       "의견 그룹과 공통 근거를 수합하는 중",
     ];
     let tick = 0;
@@ -487,16 +588,13 @@ function App() {
         {resultStale && <div className="callout" style={{ marginTop: 24 }}><div className="callout-eyebrow">결과 숨김</div><div className="callout-text">제품 정보가 바뀌어 이전 시뮬레이션 결과를 표시하지 않습니다. 새로 실행해주세요.</div></div>}
         {current === "brief"    && <BriefScreen brief={brief} setBrief={updateBrief} goNext={() => goTo("run")} onParseDocument={parseDocumentBrief} parseStatus={parseStatus} />}
         {current === "run"      && <RunScreen brief={brief} onRun={runSimulation} goBack={() => goTo("brief")} running={running} progress={progress} />}
-        {current === "signals"  && (liveResult ? <SignalsScreen data={liveData.signals} versions={liveData.versions} result={liveResult} goNext={() => goTo("personas")} goBack={() => goTo("run")} /> : <NoResultScreen goRun={() => goTo("run")} />)}
-        {current === "personas" && (liveResult ? <PersonasScreen personas={personas} mode={tweaks.personaMode} setMode={(m)=>setTweak("personaMode", m)} goNext={() => goTo("analyst")} goBack={() => goTo("signals")} onPersonaChat={personaChat} /> : <NoResultScreen goRun={() => goTo("run")} />)}
-        {current === "analyst"  && (liveResult ? <AnalystScreen result={liveResult} analystResult={analystResult} onAsk={askAnalyst} goBack={() => goTo("personas")} goNext={() => goTo("report")} /> : <NoResultScreen goRun={() => goTo("run")} />)}
-        {current === "report"   && (liveResult ? <ReportScreen result={liveResult} data={liveData} goBack={() => goTo("analyst")} goRestart={resetSession} /> : <NoResultScreen goRun={() => goTo("run")} />)}
+        {current === "signals"  && (liveResult ? (isPEResult(liveResult) ? <PESimulationScreen result={liveResult} goBack={() => goTo("run")} goRestart={resetSession} /> : <SignalsScreen data={liveData.signals} versions={liveData.versions} result={liveResult} goNext={() => goTo("personas")} goBack={() => goTo("run")} />) : <NoResultScreen goRun={() => goTo("run")} />)}
       </main>
-      {running && <SimulationOverlay progress={progress} title="시장에 제품을 던지고 있어요" defaultMessage="합성 응답자가 제품을 처음 듣고 있어요…" />}
-      {analystRunning && <SimulationOverlay progress={analystProgress} title="분석가가 인터뷰를 진행하고 있어요" defaultMessage="응답자를 고르고 질문을 다시 설계하는 중…" />}
+      {running && <SimulationOverlay progress={progress} title="시뮬레이션을 실행하고 있어요" defaultMessage="Solar가 선택한 관점별 응답을 생성 중입니다…" />}
+      {analystRunning && <SimulationOverlay progress={analystProgress} title="PE analyst가 관점을 정리하고 있어요" defaultMessage="stakeholder 관점을 고르고 질문을 다시 설계하는 중…" />}
       <TweaksPanel title="Tweaks">
         <TweakSection label="화면 테마"><TweakRadio label="테마" value={tweaks.theme} options={[{ value: "dark", label: "어둡게" }, { value: "light", label: "밝게" }]} onChange={(v) => setTweak("theme", v)} /></TweakSection>
-        <TweakSection label="응답자 보는 방식">
+        <TweakSection label="PE 결과 보기">
           <div className="tw-mode-swatches">
             {[{ id: "constellation", label: "별자리" }, { id: "cards", label: "카드" }].map(s => <div key={s.id} className={"tw-swatch" + ((tweaks.personaMode === s.id || (!["constellation", "cards"].includes(tweaks.personaMode) && s.id === "constellation")) ? " active" : "")} onClick={() => setTweak("personaMode", s.id)}><span>{s.label}</span></div>)}
           </div>
@@ -506,7 +604,7 @@ function App() {
   );
 }
 
-function SimulationOverlay({ progress, title = "시장에 제품을 던지고 있어요", defaultMessage = "합성 응답자가 제품을 처음 듣고 있어요…" }) {
+function SimulationOverlay({ progress, title = "PE stakeholder simulation을 실행하고 있어요", defaultMessage = "관점별 검증 질문을 생성하고 있어요…" }) {
   const canvasRef = useRef(null);
   const percent = Math.max(0, Math.min(100, Number(progress?.percent ?? 12)));
   const thought = progress?.message || defaultMessage;

@@ -60,6 +60,13 @@ PERSONA_RESPONSE_SCHEMA = """
   "need_fit_score": 0,
   "adoption_likelihood": 0,
   "price_resistance": "Low | Low-Medium | Medium | High",
+  "amount_resistance": "Low | Low-Medium | Medium | High",
+  "payment_friction": "Low | Low-Medium | Medium | High",
+  "value_confidence": "Low | Medium | High",
+  "trust_resistance": "Low | Low-Medium | Medium | High",
+  "would_try_if_free_or_1krw": true,
+  "reason_price_specific": "...",
+  "reason_non_price": "...",
   "concern": "...",
   "positive_drivers": ["..."],
   "top_risks": ["..."],
@@ -67,6 +74,88 @@ PERSONA_RESPONSE_SCHEMA = """
   "used_persona_fields": ["..."]
 }
 """.strip()
+
+PE_STAKEHOLDER_RESPONSE_SCHEMA = """
+{
+  "persona_name": "...",
+  "perspective_summary": "...",
+  "possible_root_causes": ["..."],
+  "data_to_check": ["..."],
+  "suggested_tests": ["..."],
+  "cross_team_questions": ["..."],
+  "risk_factors": ["..."]
+}
+""".strip()
+
+PE_STAKEHOLDER_PERSONAS = [
+    {
+        "id": "device",
+        "name": "Device Perspective",
+        "role": "Cell, transistor, leakage, retention, sensing margin 관점에서 제품 이슈를 해석한다.",
+        "focus": [
+            "Access transistor leakage",
+            "Cell capacitor degradation",
+            "Threshold voltage variation",
+            "Retention margin",
+            "Temperature-dependent leakage",
+            "Device-level weak point",
+        ],
+    },
+    {
+        "id": "design",
+        "name": "Design Perspective",
+        "role": "Circuit timing, architecture, sense amplifier, refresh policy, command/address timing 관점에서 이슈를 해석한다.",
+        "focus": [
+            "Sense amplifier timing margin",
+            "Wordline/bitline timing",
+            "Refresh interval",
+            "Timing slack",
+            "Internal circuit path delay",
+            "Operating corner sensitivity",
+        ],
+    },
+    {
+        "id": "process",
+        "name": "Process Perspective",
+        "role": "Process variation, wafer 위치, lot 편차, CD variation, oxide thickness, implant variation 관점에서 이슈를 해석한다.",
+        "focus": [
+            "Wafer edge vs center distribution",
+            "Lot-to-lot variation",
+            "CD variation",
+            "Implant variation",
+            "Oxide thickness variation",
+            "Yield map correlation",
+        ],
+    },
+    {
+        "id": "test_quality",
+        "name": "Test / Quality / PE Perspective",
+        "role": "Test condition, fail signature, shmoo plot, binning, screening, reliability 관점에서 이슈를 해석한다.",
+        "focus": [
+            "Voltage-temperature-frequency condition",
+            "Fail signature",
+            "Shmoo plot",
+            "Test coverage",
+            "Test time optimization",
+            "Reliability stress condition",
+            "Screening condition",
+        ],
+    },
+    {
+        "id": "customer_application",
+        "name": "Customer / Application Perspective",
+        "role": "실제 고객 사용 환경, workload, system-level condition, application-specific requirement 관점에서 이슈를 해석한다.",
+        "focus": [
+            "AI accelerator workload",
+            "High bandwidth memory access pattern",
+            "High temperature operation",
+            "Low-power mode transition",
+            "Burst access",
+            "System-level compatibility",
+            "Customer-specific validation condition",
+        ],
+    },
+]
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -3617,8 +3706,13 @@ def build_persona_prompt(brief: dict[str, Any], persona: dict[str, Any]) -> str:
   - 40-54: "관망형"
   - < 40: "회의형"
 - price_resistance calibration:
-  - 무료/저가라도 신뢰·효용이 부족하면 Medium 이상 가능
-  - 월 구독/수수료가 persona 맥락상 부담이면 High 사용
+  - price_resistance는 종합 가격/결제 장벽이다.
+  - amount_resistance는 순수 금액 부담만 판단한다. 0원/무료/1원은 특별한 사정이 없으면 Low로 둔다.
+  - payment_friction은 카드 등록, 구독 시작, 자동결제, 해지 불안 같은 결제 행위 부담이다.
+  - value_confidence는 "이 가격을 낼 만큼 효용을 믿는가"이다. High는 효용 확신이 높고, Low는 효용 확신이 낮다는 뜻이다.
+  - trust_resistance는 결과 품질, 책임 범위, 개인정보/보안, 근거 부족 때문에 생기는 불신이다.
+  - 무료/1원인데도 망설이면 amount_resistance를 올리지 말고 payment_friction/value_confidence/trust_resistance/reason_non_price에 분리해 쓴다.
+  - 월 구독/수수료가 persona 맥락상 실제 예산 부담이면 amount_resistance와 price_resistance를 올린다.
 - 출력은 JSON only.
 
 JSON schema:
@@ -3649,6 +3743,15 @@ def simulate_persona_reaction(
         "need_fit_score": _as_int(data.get("need_fit_score"), default=60),
         "adoption_likelihood": _as_int(data.get("adoption_likelihood"), default=50),
         "price_resistance": str(data.get("price_resistance") or "Medium"),
+        "amount_resistance": str(data.get("amount_resistance") or data.get("price_amount_resistance") or data.get("price_resistance") or "Medium"),
+        "payment_friction": str(data.get("payment_friction") or "Medium"),
+        "value_confidence": str(data.get("value_confidence") or "Medium"),
+        "trust_resistance": str(data.get("trust_resistance") or "Medium"),
+        "would_try_if_free_or_1krw": bool(data.get("would_try_if_free_or_1krw"))
+        if data.get("would_try_if_free_or_1krw") is not None
+        else None,
+        "reason_price_specific": str(data.get("reason_price_specific") or ""),
+        "reason_non_price": str(data.get("reason_non_price") or ""),
         "concern": str(data.get("concern") or "추가 검증이 필요함"),
         "positive_drivers": _listify(data.get("positive_drivers"))[:5],
         "top_risks": _listify(data.get("top_risks"))[:5],
@@ -4880,6 +4983,187 @@ def simulate_market_research(
     return result
 
 
+def validate_pe_issue_brief(brief: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a semiconductor PE issue before stakeholder simulation."""
+
+    if not isinstance(brief, dict):
+        raise ValueError("brief must be an object")
+
+    def text_field(name: str, default: str = "") -> str:
+        value = brief.get(name, default)
+        if isinstance(value, list):
+            value = ", ".join(str(item) for item in value)
+        return str(value).strip()[:2000]
+
+    issue = _first_text(
+        text_field("issue"),
+        text_field("description"),
+        text_field("product_issue"),
+        text_field("hypothesis"),
+    )
+    if not issue:
+        issue = "반도체 제품 이슈 또는 fail pattern이 구체적으로 입력되지 않았습니다."
+
+    selected = _listify(brief.get("selected_stakeholders"))
+    known_ids = {persona["id"] for persona in PE_STAKEHOLDER_PERSONAS}
+    selected_ids = [item for item in selected if item in known_ids]
+
+    return {
+        "product_name": text_field("product_name", "Semiconductor product") or "Semiconductor product",
+        "issue": issue,
+        "fail_pattern": text_field("fail_pattern"),
+        "test_condition": text_field("test_condition"),
+        "customer_requirement": text_field("customer_requirement") or text_field("target_market"),
+        "known_data": _listify(brief.get("known_data"))[:12],
+        "hypothesis": text_field("hypothesis"),
+        "selected_stakeholders": selected_ids,
+    }
+
+
+def build_pe_stakeholder_prompt(brief: dict[str, Any], stakeholder: dict[str, Any]) -> str:
+    return f"""
+다음 반도체 제품 이슈를 PE(Product Engineering) 직무 관점에서 cross-functional stakeholder simulation으로 검토하라.
+
+[SEMICONDUCTOR PE ISSUE]
+{json.dumps(brief, ensure_ascii=False, indent=2)}
+
+[STAKEHOLDER PERSONA]
+{json.dumps(stakeholder, ensure_ascii=False, indent=2)}
+
+요구사항:
+- AI가 불량 원인을 확정하지 않는다. 가능한 원인 후보와 추가 검증 방향만 제안한다.
+- PE 엔지니어가 문제를 구조화하고 관련 부서와 커뮤니케이션하기 전에 놓칠 수 있는 관점을 점검하도록 돕는다.
+- 실제 NVIDIA, AMD 등 특정 기업의 내부 요구사항을 아는 것처럼 말하지 않는다.
+- 고객 관점은 GPU/AI accelerator customer, hyperscale data center customer, mobile/low-power customer 같은 application category로만 표현한다.
+- 제품 이슈, fail pattern, test condition, customer requirement에 연결되는 근거를 써라.
+- 각 배열은 3-6개 항목으로 제한한다.
+- 출력은 JSON only.
+
+JSON schema:
+{PE_STAKEHOLDER_RESPONSE_SCHEMA}
+""".strip()
+
+
+def simulate_pe_stakeholder(
+    brief: dict[str, Any],
+    stakeholder: dict[str, Any],
+    *,
+    client: UpstageClient,
+) -> dict[str, Any]:
+    text = client.complete_text(
+        build_pe_stakeholder_prompt(brief, stakeholder),
+        system=SYSTEM_PROMPT,
+        temperature=0.25,
+        max_tokens=1100,
+        timeout=90,
+    )
+    data = _extract_json(text)
+    return {
+        "id": stakeholder["id"],
+        "persona_name": str(data.get("persona_name") or stakeholder["name"]),
+        "role": stakeholder["role"],
+        "focus": stakeholder["focus"],
+        "perspective_summary": str(data.get("perspective_summary") or "추가 검증 관점 정리가 필요합니다."),
+        "possible_root_causes": _listify(data.get("possible_root_causes"))[:6],
+        "data_to_check": _listify(data.get("data_to_check"))[:6],
+        "suggested_tests": _listify(data.get("suggested_tests"))[:6],
+        "cross_team_questions": _listify(data.get("cross_team_questions"))[:6],
+        "risk_factors": _listify(data.get("risk_factors"))[:6],
+    }
+
+
+def build_pe_engineer_summary(stakeholder_analyses: list[dict[str, Any]]) -> dict[str, Any]:
+    causes: list[str] = []
+    data_to_check: list[str] = []
+    actions: list[str] = []
+    customer_messages: list[str] = []
+    communication_points: dict[str, list[str]] = {}
+
+    for analysis in stakeholder_analyses:
+        persona_name = str(analysis.get("persona_name") or "Stakeholder")
+        causes.extend(_listify(analysis.get("possible_root_causes")))
+        data_to_check.extend(_listify(analysis.get("data_to_check")))
+        actions.extend(_listify(analysis.get("suggested_tests")))
+        communication_points[persona_name] = _listify(analysis.get("cross_team_questions"))[:4]
+        if analysis.get("id") == "customer_application":
+            customer_messages.extend(_listify(analysis.get("risk_factors")) + _listify(analysis.get("cross_team_questions")))
+
+    return {
+        "top_root_cause_candidates": unique_top(causes, limit=3) or ["원인 후보를 확정하지 말고 조건별 fail correlation부터 확인"],
+        "data_to_check": unique_top(data_to_check, limit=8) or ["Voltage-temperature-frequency별 fail distribution"],
+        "priority_action_items": unique_top(actions, limit=6) or ["Voltage/temperature shmoo와 fail signature 재현 조건 확인"],
+        "cross_team_communication_points": communication_points,
+        "customer_response_message": unique_top(customer_messages, limit=4)
+        or [
+            "AI가 원인을 확정하지 않았으며, application category 기반 조건에서 재현성과 validation gap을 점검 중이라고 정리",
+            "내부 standard test와 고객 workload 조건의 차이를 데이터로 좁히는 방향으로 커뮤니케이션",
+        ],
+        "guardrail": "AI는 불량 원인을 확정하지 않고 PE 엔지니어의 검증 관점 구조화를 돕는 reasoning assistant입니다.",
+    }
+
+
+def simulate_semiconductor_pe_review(
+    brief: dict[str, Any],
+    *,
+    client: UpstageClient | None = None,
+    max_workers: int = 5,
+) -> dict[str, Any]:
+    """Run semiconductor PE stakeholder reviews in parallel and summarize locally."""
+
+    client = client or UpstageClient()
+    normalized_brief = validate_pe_issue_brief(brief)
+    selected_ids = set(normalized_brief.get("selected_stakeholders") or [])
+    stakeholders = [
+        stakeholder
+        for stakeholder in PE_STAKEHOLDER_PERSONAS
+        if not selected_ids or stakeholder["id"] in selected_ids
+    ]
+    workers = max(1, min(max_workers, len(stakeholders), 5))
+    indexed_results: list[tuple[int, dict[str, Any]]] = []
+    failures: list[dict[str, Any]] = []
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {
+            executor.submit(simulate_pe_stakeholder, normalized_brief, stakeholder, client=client): index
+            for index, stakeholder in enumerate(stakeholders)
+        }
+        for future in as_completed(futures):
+            index = futures[future]
+            try:
+                indexed_results.append((index, future.result()))
+            except Exception as exc:
+                failures.append(
+                    {
+                        "index": index,
+                        "persona_name": stakeholders[index]["name"],
+                        "error": _shorten(exc, limit=240),
+                    }
+                )
+
+    analyses = [result for _, result in sorted(indexed_results, key=lambda item: item[0])]
+    if not analyses and failures:
+        raise RuntimeError(f"All PE stakeholder calls failed: {failures[0].get('error') or 'unknown upstream failure'}")
+
+    summary = build_pe_engineer_summary(analyses)
+    return {
+        "simulation_mode": "semiconductor_pe",
+        "product_name": normalized_brief["product_name"],
+        "issue": normalized_brief["issue"],
+        "brief": normalized_brief,
+        "stakeholder_analyses": analyses,
+        "pe_engineer_summary": summary,
+        "partial_failures": failures[:10],
+        "request_plan": {
+            "mode": "parallel_pe_stakeholder_calls",
+            "stakeholder_count": len(analyses),
+            "failed_stakeholder_calls": len(failures),
+            "max_parallel_requests": workers,
+            "aggregation": "local_deterministic",
+        },
+        "model_note": "Upstage Solar Pro 3",
+    }
+
+
 def _normalize_chat_history(value: Any, *, limit: int = 10) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
@@ -4892,6 +5176,24 @@ def _normalize_chat_history(value: Any, *, limit: int = 10) -> list[dict[str, st
         if role in {"user", "persona"} and content:
             history.append({"role": role, "content": content[:800]})
     return history
+
+
+def _persona_history_replies(history: list[dict[str, str]] | None) -> list[str]:
+    return [
+        str(message.get("content") or "").strip()
+        for message in _normalize_chat_history(history)
+        if message.get("role") == "persona" and str(message.get("content") or "").strip()
+    ]
+
+
+def _reply_repeats_recent_history(reply: str, history: list[dict[str, str]] | None) -> bool:
+    text = str(reply or "").strip()
+    if not text:
+        return False
+    for previous in _persona_history_replies(history)[-4:]:
+        if _normalized_similarity(text, previous) >= 0.82 or _normalized_contains(previous, text) or _normalized_contains(text, previous):
+            return True
+    return False
 
 
 def build_persona_chat_prompt(
@@ -4911,18 +5213,31 @@ def build_persona_chat_prompt(
         "need_fit_score": _as_int(persona_reaction.get("need_fit_score"), default=60),
         "adoption_likelihood": _as_int(persona_reaction.get("adoption_likelihood"), default=50),
         "price_resistance": _shorten(persona_reaction.get("price_resistance"), limit=80),
+        "amount_resistance": _shorten(persona_reaction.get("amount_resistance"), limit=80),
+        "payment_friction": _shorten(persona_reaction.get("payment_friction"), limit=80),
+        "value_confidence": _shorten(persona_reaction.get("value_confidence"), limit=80),
+        "trust_resistance": _shorten(persona_reaction.get("trust_resistance"), limit=80),
+        "would_try_if_free_or_1krw": persona_reaction.get("would_try_if_free_or_1krw"),
+        "reason_price_specific": _shorten(persona_reaction.get("reason_price_specific"), limit=500),
+        "reason_non_price": _shorten(persona_reaction.get("reason_non_price"), limit=500),
         "concern": _shorten(persona_reaction.get("concern"), limit=800),
         "positive_drivers": _listify(persona_reaction.get("positive_drivers"))[:5],
         "top_risks": _listify(persona_reaction.get("top_risks"))[:5],
         "next_validation_question": _shorten(persona_reaction.get("next_validation_question"), limit=500),
         "used_persona_fields": _listify(persona_reaction.get("used_persona_fields"))[:8],
     }
+    persona_context = persona_reaction.get("persona_context")
+    if not isinstance(persona_context, dict):
+        persona_context = persona_reaction.get("sourceContext") if isinstance(persona_reaction.get("sourceContext"), dict) else {}
     return f"""
 너는 시장조사 시뮬레이션에서 아래 persona 본인처럼 답한다.
-과장된 롤플레이가 아니라, persona 결과와 제품 맥락에 근거해 짧고 현실적으로 답한다.
+과장된 롤플레이가 아니라, 원본 persona 맥락과 제품 맥락에 근거해 짧고 현실적으로 답한다.
 
 [PRODUCT BRIEF]
 {json.dumps(normalized_brief, ensure_ascii=False, indent=2)}
+
+[PERSONA CONTEXT]
+{json.dumps(persona_context, ensure_ascii=False, indent=2)}
 
 [PERSONA RESULT]
 {json.dumps(safe_persona, ensure_ascii=False, indent=2)}
@@ -4935,7 +5250,11 @@ def build_persona_chat_prompt(
 
 응답 규칙:
 - 반드시 1인칭으로 답한다.
-- persona 결과와 모순되지 않게 답한다.
+- PERSONA CONTEXT를 우선 근거로 삼고, PERSONA RESULT는 이전 첫 반응으로만 참고한다.
+- 이전 첫 반응의 concern/top_risks 문장을 그대로 반복하지 말고, 사용자의 질문에 맞는 새 조건·상황·근거를 말한다.
+- 이전 첫 반응과 달라질 수 있는 질문이면 "그 조건이면 생각이 달라질 수 있다/아직 어렵다"처럼 조건부로 답한다.
+- USER QUESTION이 "안녕", "ㅎㅇ", "1", "2", "3"처럼 인사·숫자·짧은 확인이면 제품 우려를 반복하지 말고 짧게 반응하거나 무엇을 묻고 싶은지 되묻는다.
+- USER QUESTION이 "너 Solar야?", "정해진 답변 하지 마"처럼 시스템/반복 여부를 묻는 말이면 합성 persona로 답하는 중이라고 투명하게 말하고, 바로 이어서 어떤 점을 확인할지 물어본다.
 - 실제 인터뷰 참여자처럼 자연스럽게 답한다. 보고서 문체나 컨설턴트 문체를 쓰지 않는다.
 - 제품팀이 배울 수 있는 구체적 이유/조건을 포함하되, 근거 없는 수치/ROI/성과율은 만들지 않는다.
 - 최근 대화에서 이미 말한 내용을 반복하지 말고, 새 조건/증거/상황만 추가한다.
@@ -4973,14 +5292,36 @@ def chat_with_persona(
         raise ValueError("persona must be an object")
 
     client = client or UpstageClient()
+    prompt = build_persona_chat_prompt(brief, persona_reaction, message.strip(), history)
     text = client.complete_text(
-        build_persona_chat_prompt(brief, persona_reaction, message.strip(), history),
+        prompt,
         system=SYSTEM_PROMPT,
         temperature=0.35,
         max_tokens=600,
         timeout=90,
     )
     data = _extract_json(text)
+    if _reply_repeats_recent_history(str(data.get("reply") or ""), history):
+        repeated_reply = _shorten(data.get("reply"), limit=700)
+        retry_prompt = f"""
+{prompt}
+
+[RETRY INSTRUCTION]
+방금 답변이 최근 persona 답변과 거의 동일했다.
+같은 문장이나 같은 objection을 다시 말하지 말고 USER QUESTION 자체에만 답하라.
+반복된 답변: {repeated_reply}
+인사/숫자/메타 질문이면 새 제품 조건을 만들지 말고 짧게 반응하거나 확인 질문을 하라.
+""".strip()
+        retry_text = client.complete_text(
+            retry_prompt,
+            system=SYSTEM_PROMPT,
+            temperature=0.5,
+            max_tokens=600,
+            timeout=90,
+        )
+        retry_data = _extract_json(retry_text)
+        if not _reply_repeats_recent_history(str(retry_data.get("reply") or ""), history):
+            data = retry_data
     return {
         "persona_name": str(data.get("persona_name") or persona_reaction.get("name") or "Persona"),
         "reply": str(data.get("reply") or "조금 더 구체적으로 물어봐 주세요."),

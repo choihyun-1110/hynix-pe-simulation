@@ -234,6 +234,11 @@ function PersonaDetail({ persona }) {
   if (!persona) return null;
   const p = persona;
   const priceCls = p.price === "높음" ? "high" : p.price === "보통" ? "med" : "low";
+  const valueConfidenceKo = String(p.valueConfidence || "").toLowerCase().includes("high")
+    ? "높음"
+    : String(p.valueConfidence || "").toLowerCase().includes("low")
+      ? "낮음"
+      : "보통";
 
   return (
     <div className="persona-detail">
@@ -254,6 +259,22 @@ function PersonaDetail({ persona }) {
         <div className="pd-stat"><div className="lbl">문제 적합도</div><div className="val">{p.need}%</div></div>
         <div className="pd-stat"><div className="lbl">채택 의향</div><div className="val">{p.adoption}%</div></div>
         <div className="pd-stat"><div className="lbl">가격 부담</div><div className={"val " + priceCls}>{p.price}</div></div>
+      </div>
+
+      <div className="pd-section">
+        <div className="pd-shead">가격 판단 분해</div>
+        <div className="pd-stats">
+          <div className="pd-stat"><div className="lbl">금액 부담</div><div className="val">{p.amountResistance}</div></div>
+          <div className="pd-stat"><div className="lbl">결제 마찰</div><div className="val">{p.paymentFriction}</div></div>
+          <div className="pd-stat"><div className="lbl">효용 확신</div><div className="val">{valueConfidenceKo}</div></div>
+          <div className="pd-stat"><div className="lbl">신뢰 장벽</div><div className="val">{p.trustResistance}</div></div>
+        </div>
+        {(p.reasonPriceSpecific || p.reasonNonPrice) && (
+          <ul className="pd-list">
+            {p.reasonPriceSpecific && <li>{p.reasonPriceSpecific}</li>}
+            {p.reasonNonPrice && <li>{p.reasonNonPrice}</li>}
+          </ul>
+        )}
       </div>
 
       <div className="pd-section">
@@ -300,6 +321,7 @@ function PersonaChat({ persona, onPersonaChat = null }) {
     setStream([]);
     setInput("");
     setThinking(false);
+    if (onPersonaChat) return;
     const script = onPersonaChat ? [persona.core].filter(Boolean) : (RESONANCE_DATA.chatScript[persona.id] || [persona.core]);
     const out = [];
     let i = 0;
@@ -330,7 +352,7 @@ function PersonaChat({ persona, onPersonaChat = null }) {
     setThinking(true);
     try {
       const reply = onPersonaChat ? await onPersonaChat(persona, q, nextStream.map(m => ({ role: m.role === 'bot' ? 'persona' : 'user', content: m.text }))) : customReply(persona, q);
-      setStream(s => [...s, { role: "bot", text: reply || customReply(persona, q) }]);
+      setStream(s => [...s, { role: "bot", text: reply || "방금 질문에는 더 구체적인 맥락이 필요해요. 어떤 상황을 가정하는지 한 번만 더 물어봐 주세요." }]);
     } catch (err) {
       setStream(s => [...s, { role: "bot", text: `API 요청이 실패했습니다: ${err.message || err}` }]);
     } finally {
@@ -359,7 +381,7 @@ function PersonaChat({ persona, onPersonaChat = null }) {
       <div className="chat-stream" ref={streamRef}>
         {stream.length === 0 && (
           <div style={{ color: "var(--text-4)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-            이 분이 잠시 후 말을 걸어올 거예요.
+            질문을 입력하면 이 응답자 맥락으로 Solar가 답합니다.
           </div>
         )}
         {stream.map((m, i) => (

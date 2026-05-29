@@ -29,7 +29,7 @@ if str(SRC) not in sys.path:
 
 from upstage_api_sim.document_parse import parse_document_to_brief  # noqa: E402
 from upstage_api_sim.env import load_env  # noqa: E402
-from upstage_api_sim.market_research import analyst_question_personas, chat_with_persona, simulate_market_research  # noqa: E402
+from upstage_api_sim.market_research import analyst_question_personas, chat_with_persona, simulate_market_research, simulate_semiconductor_pe_review  # noqa: E402
 from upstage_api_sim.personas.io import load_personas_jsonl  # noqa: E402
 from upstage_api_sim.personas.nemotron import DATASET_ID, compact_persona_from_row  # noqa: E402
 from upstage_api_sim.run_store import (  # noqa: E402
@@ -53,7 +53,7 @@ PERSONA_CACHE_LOCK = threading.Lock()
 RATE_LIMIT_STATE: dict[str, list[float]] = {}
 RATE_LIMIT_LOCK = threading.Lock()
 
-MUTATING_API_PATHS = {"/api/simulate", "/api/simulate/start", "/api/persona-chat", "/api/analyst-question", "/api/document-brief"}
+MUTATING_API_PATHS = {"/api/simulate", "/api/simulate/start", "/api/pe-simulate", "/api/persona-chat", "/api/analyst-question", "/api/document-brief"}
 REDACTION_PATTERNS = [
     re.compile(r"Bearer\s+[A-Za-z0-9._~+\-/]+=*", re.I),
     re.compile(r"(api[_-]?key|authorization|token|password)\s*[:=]\s*['\"]?[^\s'\",}]+", re.I),
@@ -542,7 +542,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not self._require_auth():
             return
         parsed = urlparse(self.path)
-        if parsed.path not in {"/api/simulate", "/api/simulate/start", "/api/persona-chat", "/api/analyst-question", "/api/document-brief"}:
+        if parsed.path not in {"/api/simulate", "/api/simulate/start", "/api/pe-simulate", "/api/persona-chat", "/api/analyst-question", "/api/document-brief"}:
             self._send_json(404, {"error": "not_found"})
             return
         if parsed.path in MUTATING_API_PATHS and not self._check_mutating_api_budget():
@@ -570,6 +570,17 @@ class Handler(SimpleHTTPRequestHandler):
                 )
                 personas = load_or_sample_personas(payload)
                 result = simulate_market_research(payload, personas=personas, max_workers=max_workers)
+                saved = save_simulation_run(RUN_STORE, payload, result)
+                result = dict(result)
+                result["version"] = saved["summary"]
+            elif parsed.path == "/api/pe-simulate":
+                max_workers = _bounded_int(
+                    payload.get("max_parallel_requests") or os.environ.get("UPKINSEY_MAX_PARALLEL_REQUESTS", "5"),
+                    default=5,
+                    min_value=1,
+                    max_value=5,
+                )
+                result = simulate_semiconductor_pe_review(payload, max_workers=max_workers)
                 saved = save_simulation_run(RUN_STORE, payload, result)
                 result = dict(result)
                 result["version"] = saved["summary"]

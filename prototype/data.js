@@ -1,14 +1,14 @@
-/* Mock data for 업킨지 prototype */
+/* Mock data for Resonance PE prototype */
 
 window.RESONANCE_DATA = {
   brief: {
-    productName: "노인분들 심심하지 않게 해주는 강아지 로봇",
-    description: "혼자 사시는 60대 이상 어르신의 무료함과 외로움을, 강아지처럼 반응하는 소형 가정용 로봇이 매일 일정한 교감과 안전 신호로 대신해드립니다.",
-    features: ["감정 인식 음성 대화", "건강 신호 알림", "산책 모드 (휠 베이스)", "가족 화상 연결", "약 복용 리마인드"],
-    pricing: ["월 39,000원 구독", "본체 290,000원 (1회)"],
-    target: "지방과 도시에 거주하는 60~75세, 자녀와 떨어져 사는 1인 가구",
-    alternatives: "AI 스피커, TV, 반려동물(키우기 부담), 종이접기 키트, 노인복지관 프로그램",
-    hypothesis: "월 39,000원 구독 모델이 단발 290,000원 결제보다 가입률이 더 높을 것이다"
+    productName: "DRAM high-temp low-V read fail",
+    description: "DRAM 제품에서 고온 조건과 낮은 voltage margin에서 read fail이 증가한다.",
+    features: ["Temperature별 fail rate 증가", "Low voltage shmoo margin 축소", "특정 wafer edge die fail 집중", "Final test 특정 frequency 이상 fail 증가"],
+    pricing: ["High temperature", "Low voltage margin", "Final test high frequency condition"],
+    target: "AI accelerator workload, high bandwidth burst access, high temperature operation",
+    alternatives: "내부 standard test에서는 재현성이 낮고 customer workload 조건에서 intermittent fail 보고",
+    hypothesis: "Device leakage, timing margin, wafer edge process variation, customer workload condition을 함께 검토해야 원인 후보를 좁힐 수 있다."
   },
   signals: {
     adoption: { value: 33, delta: 5, prev: 28 },
