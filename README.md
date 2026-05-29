@@ -30,6 +30,8 @@ PE는 단순히 test만 수행하는 직무가 아니라, 제품을 중심으로
 - 관련 부서와 커뮤니케이션할 질문 정리
 - 고객 application 조건을 내부 test condition과 연결
 
+현재 프로토타입은 실제 사내 데이터를 학습하거나 연결한 root cause analysis tool이 아닙니다. LLM의 일반 반도체 지식과 stakeholder prompt를 바탕으로 검토 질문을 생성하는 **PE issue structuring assistant**에 가깝습니다.
+
 ## 한 줄 정의
 
 **Semiconductor PE mode is a cross-functional stakeholder simulation tool that helps PE engineers structure product issues from device, design, process, test, and customer application perspectives before deeper validation and inter-team communication.**
@@ -76,6 +78,44 @@ AI accelerator customer workload에서만 intermittent fail이 보고되었고, 
 - 관련 부서별 커뮤니케이션 포인트
 - 고객 대응 관점에서 정리해야 할 메시지
 
+모든 결과에는 다음 disclaimer를 전제로 둡니다.
+
+```text
+AI-generated hypothesis, not confirmed root cause.
+```
+
+## 현업 적용 시 확장 방향
+
+현업형 솔루션은 LLM에게 바로 원인을 묻는 구조가 아니라, 데이터 분석과 검색 layer 뒤에 LLM을 붙이는 구조가 되어야 합니다.
+
+```text
+Raw test data
+→ deterministic/statistical analysis
+→ fail pattern extraction
+→ 관련 문서/과거 case retrieval
+→ LLM stakeholder simulation
+→ PE engineer summary
+```
+
+예를 들어 DRAM shmoo test에서 특정 온도 이상 fail rate가 급증한다면, 먼저 데이터 분석 모듈이 다음과 같은 pattern을 추출해야 합니다.
+
+- 특정 온도 이상에서 fail rate 급증
+- 특정 frequency 이상에서 margin 감소
+- wafer edge die에서 fail 집중
+- 특정 lot에서만 재현
+
+그 다음 LLM은 이 분석 결과를 바탕으로 Device, Design, Process, Test/Quality, Customer/Application 관점의 질문과 action item을 정리하는 역할을 맡습니다.
+
+향후 연결 가능한 데이터 타입:
+
+- Shmoo test CSV
+- Wafer map
+- Lot/process history
+- Binning result
+- Reliability stress result
+- FA report
+- Customer qualification condition
+
 ## 중요한 Guardrail
 
 이 프로젝트는 다음을 하지 않습니다.
@@ -83,6 +123,7 @@ AI accelerator customer workload에서만 intermittent fail이 보고되었고, 
 - 실제 NVIDIA, AMD 등 특정 기업의 내부 요구사항을 예측하지 않습니다.
 - AI가 불량 원인을 확정한다고 표현하지 않습니다.
 - PE 엔지니어의 판단을 대체한다고 표현하지 않습니다.
+- 실제 shmoo data, wafer map, FA report, 공정 이력, 고객 qualification data를 조회한 것처럼 표현하지 않습니다.
 
 대신 다음을 목표로 합니다.
 
@@ -90,6 +131,7 @@ AI accelerator customer workload에서만 intermittent fail이 보고되었고, 
 - PE 엔지니어의 원인 후보 구조화 보조
 - 부서 간 커뮤니케이션 전 놓칠 수 있는 검증 관점 점검
 - 추가 검증 방향 제안
+- 데이터 분석 결과를 stakeholder별 커뮤니케이션 질문으로 변환
 
 ## Tech Stack
 
@@ -174,6 +216,8 @@ docs/                      # Earlier design notes and references
 면접에서는 이 프로젝트를 다음처럼 설명할 수 있습니다.
 
 > 기존 Resonance는 제품 아이디어를 여러 AI persona에게 보여주고 반응을 시뮬레이션하는 구조였습니다. 저는 이 구조를 PE 직무 관점으로 재해석해, 소비자 persona 대신 Device, Design, Process, Test/Quality, Customer/Application stakeholder persona가 특정 fail pattern을 각자의 관점에서 검토하도록 만들었습니다.
+
+> 다만 현재 프로토타입은 실제 사내 데이터를 기반으로 root cause를 판정하는 도구는 아닙니다. LLM의 일반 반도체 지식과 stakeholder prompt를 바탕으로, 특정 fail pattern이 들어왔을 때 각 관점에서 어떤 가능성을 볼 수 있고 어떤 데이터를 추가 확인해야 하는지 정리하는 issue structuring assistant에 가깝습니다.
 
 핵심 메시지:
 

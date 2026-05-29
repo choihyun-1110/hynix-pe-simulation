@@ -226,6 +226,8 @@ class MarketResearchTests(unittest.TestCase):
         )
 
         self.assertIn("AI가 불량 원인을 확정하지 않는다", prompt)
+        self.assertIn("issue structuring assistant", prompt)
+        self.assertIn("FA report", prompt)
         self.assertIn("application category", prompt)
         self.assertIn("실제 NVIDIA, AMD", prompt)
 
@@ -247,6 +249,9 @@ class MarketResearchTests(unittest.TestCase):
         self.assertEqual(len(client.prompts), 3)
         self.assertIn("top_root_cause_candidates", result["pe_engineer_summary"])
         self.assertIn("guardrail", result["pe_engineer_summary"])
+        self.assertEqual(result["pe_engineer_summary"]["disclaimer"], "AI-generated hypothesis, not confirmed root cause.")
+        self.assertIn("Shmoo test CSV", result["future_data_inputs"])
+        self.assertIn("not confirmed root cause", result["disclaimer"])
         self.assertTrue(
             any(analysis["id"] == "customer_application" for analysis in result["stakeholder_analyses"])
         )

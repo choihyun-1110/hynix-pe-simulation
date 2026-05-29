@@ -157,6 +157,16 @@ PE_STAKEHOLDER_PERSONAS = [
     },
 ]
 
+PE_FUTURE_DATA_INPUTS = [
+    "Shmoo test CSV",
+    "Wafer map",
+    "Lot/process history",
+    "Binning result",
+    "Reliability stress result",
+    "FA report",
+    "Customer qualification condition",
+]
+
 
 def _extract_json(text: str) -> dict[str, Any]:
     try:
@@ -5032,6 +5042,8 @@ def build_pe_stakeholder_prompt(brief: dict[str, Any], stakeholder: dict[str, An
 
 요구사항:
 - AI가 불량 원인을 확정하지 않는다. 가능한 원인 후보와 추가 검증 방향만 제안한다.
+- 실제 사내 shmoo data, wafer map, FA report, 공정 이력, 고객 qualification data를 학습하거나 조회한 것처럼 표현하지 않는다.
+- 현재 입력된 이슈와 일반 반도체 지식을 바탕으로 검토 질문을 생성하는 issue structuring assistant로만 답한다.
 - PE 엔지니어가 문제를 구조화하고 관련 부서와 커뮤니케이션하기 전에 놓칠 수 있는 관점을 점검하도록 돕는다.
 - 실제 NVIDIA, AMD 등 특정 기업의 내부 요구사항을 아는 것처럼 말하지 않는다.
 - 고객 관점은 GPU/AI accelerator customer, hyperscale data center customer, mobile/low-power customer 같은 application category로만 표현한다.
@@ -5099,6 +5111,7 @@ def build_pe_engineer_summary(stakeholder_analyses: list[dict[str, Any]]) -> dic
             "내부 standard test와 고객 workload 조건의 차이를 데이터로 좁히는 방향으로 커뮤니케이션",
         ],
         "guardrail": "AI는 불량 원인을 확정하지 않고 PE 엔지니어의 검증 관점 구조화를 돕는 reasoning assistant입니다.",
+        "disclaimer": "AI-generated hypothesis, not confirmed root cause.",
     }
 
 
@@ -5152,6 +5165,8 @@ def simulate_semiconductor_pe_review(
         "brief": normalized_brief,
         "stakeholder_analyses": analyses,
         "pe_engineer_summary": summary,
+        "future_data_inputs": PE_FUTURE_DATA_INPUTS,
+        "disclaimer": "AI-generated hypothesis, not confirmed root cause. This prototype does not use internal shmoo data, wafer maps, FA reports, process history, or customer qualification records.",
         "partial_failures": failures[:10],
         "request_plan": {
             "mode": "parallel_pe_stakeholder_calls",

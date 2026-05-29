@@ -238,12 +238,19 @@ function PESimulationScreen({ result, goBack, goRestart }) {
   const analyses = asList(result?.stakeholder_analyses);
   const summary = result?.pe_engineer_summary || {};
   const communication = summary.cross_team_communication_points || {};
+  const futureDataInputs = asList(result?.future_data_inputs);
+  const disclaimer = result?.disclaimer || summary.disclaimer || "AI-generated hypothesis, not confirmed root cause.";
   return (
     <div className="page" data-screen-label="Semiconductor PE">
       <div className="page-head">
         <div className="page-eyebrow">Semiconductor PE mode</div>
         <h1 className="page-title">제품 이슈를<br /><em>stakeholder 관점으로 분해했습니다</em></h1>
         <p className="page-sub">{result?.issue || "입력된 fail pattern과 test condition을 기준으로 device, design, process, test/quality, customer/application 관점을 점검합니다."}</p>
+      </div>
+
+      <div className="callout" style={{ marginBottom: 18 }}>
+        <div className="callout-eyebrow">Prototype boundary</div>
+        <div className="callout-text">{disclaimer}</div>
       </div>
 
       <div className="card" style={{ marginBottom: 18 }}>
@@ -261,6 +268,7 @@ function PESimulationScreen({ result, goBack, goRestart }) {
             <PEList title="추가 확인 데이터" items={summary.data_to_check} />
             <PEList title="고객 대응 메시지" items={summary.customer_response_message} />
           </div>
+          <PEList title="현업 적용 시 연결될 데이터 타입" items={futureDataInputs} />
           {Object.keys(communication).length > 0 && (
             <div className="pd-section">
               <div className="pd-shead">부서별 커뮤니케이션 포인트</div>

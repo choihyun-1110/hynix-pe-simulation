@@ -326,7 +326,7 @@ function RunScreen({ brief, onRun, goBack, running = false, progress = null }) {
 
           <div className="test-detail-card">
             <div className="test-detail-eyebrow">실행 모드 · Semiconductor PE stakeholder simulation</div>
-            <div className="test-detail-body">AI가 정답을 확정하는 것이 아니라, PE 엔지니어가 원인 후보·확인 데이터·추가 test·부서별 질문을 빠르게 구조화하도록 돕습니다. 실제 고객사는 이름으로 모방하지 않고 application category로만 다룹니다.</div>
+            <div className="test-detail-body">AI가 정답을 확정하는 것이 아니라, PE 엔지니어가 원인 후보·확인 데이터·추가 test·부서별 질문을 빠르게 구조화하도록 돕습니다. 현재 프로토타입은 실제 사내 shmoo data, wafer map, FA report를 조회하지 않으며, 현업 적용 시에는 데이터 분석 결과 위에 LLM reasoning layer를 붙이는 구조가 필요합니다.</div>
           </div>
 
           <div className="dataset-card">
@@ -338,7 +338,7 @@ function RunScreen({ brief, onRun, goBack, running = false, progress = null }) {
             <div>
               <div className="dataset-name">Cross-functional stakeholder preset</div>
               <div className="dataset-desc">
-                Device, Design, Process, Test/Quality, Customer/Application 관점의 PE reasoning assistant로 실행합니다.
+                향후 shmoo CSV, wafer map, lot/process history, binning result, reliability stress, FA report, customer qualification condition과 연결할 수 있는 PE reasoning assistant 구조입니다.
               </div>
             </div>
           </div>
